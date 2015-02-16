@@ -1,0 +1,35 @@
+{
+  "name": "indexedDBmock",
+  "version": "0.0.1n",
+  "description": "This indexedDBmock allows you to mock your indexedDB for testing",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kristofdegrave/indexedDBmock.git"
+  },
+  "keywords": [
+    "indexedDB",
+    "mocking",
+    "testing"
+  ],
+  "author": "Kristof Degrave",
+  "license": "MIT",
+  "engines": {
+     "node": ">=0.6"
+   },
+  "bugs": {
+    "url": "https://github.com/kristofdegrave/indexedDBmock/issues"
+  },
+  "homepage": "https://github.com/kristofdegrave/indexedDBmock",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-jshint": "^0.11.0",
+    "grunt-contrib-qunit": "^0.5.2",
+    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-watch": "^0.6.1"
+  }
+}
