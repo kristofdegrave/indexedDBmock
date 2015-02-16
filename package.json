@@ -1,10 +1,10 @@
 {
   "name": "indexedDBmock",
-  "version": "0.0.1n",
+  "version": "0.0.1",
   "description": "This indexedDBmock allows you to mock your indexedDB for testing",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "grunt test"
   },
   "repository": {
     "type": "git",
