@@ -26,7 +26,13 @@ module.exports = function(grunt) {
             }
         },
         qunit: {
-            files: ['test/**/*.html']
+            all: {
+                options: {
+                    urls: [
+                        'http://localhost:63342/indexedDBmock/test/index.html'
+                    ]
+                }
+            }
         },
         jshint: {
             // define the files to lint
@@ -46,35 +52,6 @@ module.exports = function(grunt) {
             tasks: ['jshint', 'qunit']
         }
     });
-
-    //grunt.event.on('qunit.begin', function() {
-    //    grunt.log.ok("Qunit beginning");
-    //});
-    //grunt.event.on('qunit.moduleStart', function(name) {
-    //    grunt.log.ok("Qunit module start: " + name);
-    //});
-    //grunt.event.on('qunit.testStart', function(name) {
-    //    grunt.log.ok('qunit test starting: ' + name);
-    //});
-    //grunt.event.on('qunit.testDone', function(name) {
-    //    grunt.log.ok('qunit test done: ' + name);
-    //});
-    //grunt.event.on('qunit.moduleDone', function(name) {
-    //    grunt.log.ok("Qunit module done: " + name);
-    //});
-    //grunt.event.on('qunit.done', function() {
-    //    grunt.log.ok("Qunit done");
-    //});
-    //grunt.event.on('qunit.error.onError', function(message, trace) {
-    //    grunt.log.error('qunit error: ' + message);
-    //});
-    //grunt.event.on('qunit.log', function(result, actual, expected, message, source) {
-    //    grunt.log.ok('result: ' + result);
-    //    grunt.log.ok('actual: ' + actual);
-    //    grunt.log.ok('expected: ' + expected);
-    //    grunt.log.ok('message: ' + message);
-    //    grunt.log.ok('source: ' + source);
-    //});
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');

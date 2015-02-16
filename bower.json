@@ -1,0 +1,30 @@
+{
+  "name": "indexedDBmock",
+  "version": "0.0.1",
+  "homepage": "https://github.com/kristofdegrave/indexedDBmock",
+  "authors": [
+    "Kristof degrave <kristof@kristofdegrave.be>"
+  ],
+  "description": "This indexedDBmock allows you to mock your indexedDB for testing",
+  "main": "indexeddbmock.js",
+  "moduleType": [
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "indexeddb",
+    "mock",
+    "testing"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "qunit": "~1.17.1"
+  }
+}
