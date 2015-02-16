@@ -26,13 +26,7 @@ module.exports = function(grunt) {
             }
         },
         qunit: {
-            all: {
-                options: {
-                    urls: [
-                        'http://localhost:63342/indexedDBmock/test/index.html'
-                    ]
-                }
-            }
+            files: ['test/**/*.html']
         },
         jshint: {
             // define the files to lint
