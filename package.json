@@ -4,7 +4,7 @@
   "description": "This indexedDBmock allows you to mock your indexedDB for testing",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "default": "grunt"
   },
   "repository": {
     "type": "git",
