@@ -14,7 +14,6 @@
                     if(database === name)
                     {
                         db = dbs[database];
-                        continue;
                     }
                 }
 
@@ -46,63 +45,63 @@
                 else {
                     if (version && connection.version < version) {
                         setTimeout(function () {
+                            returnObj.target = returnObj;
+                            returnObj.target.readyState = "done";
+                            returnObj.target.type = "upgradeneeded";
+                            returnObj.target.newVersion = version;
+                            returnObj.target.oldVersion = connection.version;
+                            returnObj.target.transaction = new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection));
+
+                            // Upgrade version
+                            returnObj.target.transaction.db.version = version;
+                            connection.version = version;
+                            db.version = version;
+
                             if (typeof returnObj.onupgradeneeded === 'function') {
-                                returnObj.target = returnObj;
-                                returnObj.target.readyState = "done";
-                                returnObj.target.type = "upgradeneeded";
-                                returnObj.target.newVersion = version;
-                                returnObj.target.oldVersion = connection.version;
-                                returnObj.target.transaction = new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection));
-
-                                // Upgrade version
-                                returnObj.target.transaction.db.version = version;
-                                connection.version = version;
-
-                                db.version = version;
 
                                 returnObj.onupgradeneeded(returnObj);
 
                                 db.objectStores = returnObj.target.transaction.db._objectStores;
                                 db.objectStoreNames = returnObj.target.transaction.db.objectStoreNames;
+                            }
 
-                                setTimeout(function () {
-                                    if(returnObj.target.transaction._aborted) {
-                                        if (typeof returnObj.onerror === 'function') {
-                                            returnObj.target = returnObj;
-                                            returnObj.target.errorCode = 8;
-                                            returnObj.target.error = {
-                                                name: "AbortError",
-                                                message: "The transaction was aborted."
-                                            };
-                                            returnObj.target.readyState = "done";
-
-                                            returnObj.onerror(returnObj);
-                                        }
-                                    }
-                                    else if (typeof returnObj.onsuccess === 'function') {
+                            setTimeout(function () {
+                                if(returnObj.target.transaction._aborted) {
+                                    if (typeof returnObj.onerror === 'function') {
                                         returnObj.target = returnObj;
-                                        returnObj.target.result = connection;
+                                        returnObj.target.errorCode = 8;
+                                        returnObj.target.error = {
+                                            name: "AbortError",
+                                            message: "The transaction was aborted."
+                                        };
                                         returnObj.target.readyState = "done";
 
-                                        db.connections.push(connection);
-
-                                        returnObj.onsuccess(returnObj);
+                                        returnObj.onerror(returnObj);
                                     }
+                                }
+                                else if (typeof returnObj.onsuccess === 'function') {
+                                    returnObj.target = returnObj;
+                                    returnObj.target.result = connection;
+                                    returnObj.target.readyState = "done";
 
-                                    for (var i = 0; i < db.connections.length; i++) {
-                                        if (db.connections[i]._connectionId !== connection._connectionId) {
-                                            if (typeof db.connections[i].onversionchange === 'function') {
-                                                db.connections[i].target = db.connections[i];
-                                                db.connections[i].target.readyState = "done";
-                                                db.connections[i].target.type = TransactionTypes.VERSIONCHANGE;
-                                                db.connections[i].target.version = version;
+                                    db.connections.push(connection);
 
-                                                db.connections[i].onversionchange(db.connections[i]);
-                                            }
+                                    returnObj.onsuccess(returnObj);
+                                }
+
+                                for (var i = 0; i < db.connections.length; i++) {
+                                    if (db.connections[i]._connectionId !== connection._connectionId) {
+                                        if (typeof db.connections[i].onversionchange === 'function') {
+                                            db.connections[i].target = db.connections[i];
+                                            db.connections[i].target.readyState = "done";
+                                            db.connections[i].target.type = TransactionTypes.VERSIONCHANGE;
+                                            db.connections[i].target.version = version;
+
+                                            db.connections[i].onversionchange(db.connections[i]);
                                         }
                                     }
-                                }, timeout);
-                            }
+                                }
+                            }, timeout);
                         }, timeout);
                     }
                     else {
@@ -129,7 +128,6 @@
                     {
                         dbs[database] = undefined;
                         delete dbs[database];
-                        continue;
                     }
                 }
 
@@ -240,7 +238,6 @@
             for (var i = 0; i < this._db.connections.length; i++) {
                 if (this._db.connections[i].connectionId === this._connectionId) {
                     this._db.connections.splice(i, 1);
-                    continue;
                 }
             }
         }
