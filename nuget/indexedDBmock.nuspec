@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>indexedDBmock</id>
+    <version>0.0.1</version>
+    <title>indexedDBmock</title>
+    <authors>Kristof Degrave</authors>
+    <owners>Kristof Degrave</owners>
+    <licenseUrl>https://github.com/kristofdegrave/indexedDBmock/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/kristofdegrave/indexedDBmock</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+      Mocks the indexedDB API so it can be used for testing without a browser.
+    </description>
+    <summary>
+      Mocks the indexedDB API so it can be used for testing without a browser.
+    </summary>
+    <language>en-US</language>
+    <tags>IndexedDB, testing, mocking</tags>
+    <dependencies />
+  </metadata>
+  <files>
+    <file src="..\dist\indexedDBmock.js" target="Content\Scripts" />
+    <file src="..\dist\indexedDBmock.min.js" target="Content\Scripts" />
+  </files>
+</package>  

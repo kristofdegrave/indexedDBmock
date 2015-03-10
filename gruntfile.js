@@ -49,8 +49,36 @@ module.exports = function(grunt) {
             install: {
                 //just run 'grunt bower:install' and you'll see files from your Bower packages in lib directory
             }
+        },
+        nugetpack: {
+            dist: {
+                src: 'nuget/indexedDBmock.nuspec',
+                dest: 'nuget/packages/',
+                options: {
+                    version: '<%= version %>'
+                }
+            }
+        },
+        nugetpush: {
+            dist: {
+                src: 'nuget/packages/*.nupkg'
+            }
+        },
+        release: {
+            options: {
+                bump: false,
+                commitMessage: 'Release <%= version %>'
+            }
+        },
+        bump: {
+            options: {
+                updateConfigs: ['pkg'],
+                commit: false,
+                createTag: false,
+                push: false
+            }
         }
-});
+    });
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -58,6 +86,10 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-bower-task');
+    grunt.loadNpmTasks('grunt-nuget');
+    grunt.loadNpmTasks('grunt-release');
+    grunt.loadNpmTasks('grunt-bump');
+
 
 
     // this would be run by typing "grunt test" on the command line
@@ -65,4 +97,9 @@ module.exports = function(grunt) {
 
     // the default task can be run just by typing "grunt" on the command line
     grunt.registerTask('default', ['jshint', 'bower', 'qunit', 'concat', 'uglify']);
+
+    grunt.registerTask('publish', ['publish:patch']);
+    grunt.registerTask('publish:patch', ['clean', 'bump:patch', 'release', 'nugetpack', 'nugetpush']);
+    grunt.registerTask('publish:minor', ['clean', 'bump:minor', 'release', 'nugetpack', 'nugetpush']);
+    grunt.registerTask('publish:major', ['clean', 'bump:major', 'release', 'nugetpack', 'nugetpush']);
 };
