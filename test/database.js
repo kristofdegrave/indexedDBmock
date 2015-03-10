@@ -1,16 +1,14 @@
 /**
  * Created by Kristof on 16/02/2015.
  */
-
 QUnit.start();
 QUnit.module("Database");
 QUnit.test("Opening/Creating Database", function (assert) {
     var done = assert.async();
-    var dbName = "database";
     assert.expect(3);
 
     initionalSituation(function(){
-        var request = window.indexedDBmock.open(dbName);
+        var request = indexedDb.open(dbName);
 
         request.onsuccess = function(e){
             assert.equal(e.target.result.name, dbName, "Database opened/created");
@@ -34,7 +32,7 @@ QUnit.test("Opening/Creating Database with version", function (assert) {
     assert.expect(5);
 
     initionalSituation(function(){
-        var request = window.indexedDBmock.open(dbName, version);
+        var request = indexedDb.open(dbName, version);
 
         request.onsuccess = function(e){
             assert.equal(e.target.result.name, dbName, "Database opened/created");
@@ -59,7 +57,7 @@ QUnit.test("Opening existing Database", function (assert) {
     assert.expect(1);
 
     initionalSituationDatabase(function () {
-        var request = window.indexedDBmock.open(dbName);
+        var request = indexedDb.open(dbName);
         request.onsuccess = function(e){
             assert.equal(e.target.result.name, dbName, "Database opened/created");
             e.target.result.close();
@@ -80,7 +78,7 @@ QUnit.test("Opening existing Database with current version", function (assert) {
     assert.expect(2);
 
     initionalSituationDatabase(function () {
-        var request = window.indexedDBmock.open(dbName, version);
+        var request = indexedDb.open(dbName, version);
         request.onsuccess = function(e){
             assert.equal(e.target.result.name, dbName, "Database opened/created");
             assert.equal(parseInt(e.target.result.version), version, "Database version");
@@ -101,7 +99,7 @@ QUnit.test("Opening existing Database with lower version", function (assert) {
     var version = 1;
 
     initionalSituationDatabaseVersion(function () {
-        var request = window.indexedDBmock.open(dbName, version);
+        var request = indexedDb.open(dbName, version);
 
         request.onsuccess = function(e){
             assert.ok(false, "Database opened/created");
@@ -123,7 +121,7 @@ QUnit.test("Opening existing Database with higher version", function (assert) {
     assert.expect(5);
 
     initionalSituationDatabase(function () {
-        var request = window.indexedDBmock.open(dbName, version);
+        var request = indexedDb.open(dbName, version);
 
         request.onsuccess = function(e){
             assert.equal(e.target.result.name, dbName, "Database opened/created");
@@ -146,11 +144,11 @@ QUnit.test("Deleting existing Database", function (assert) {
     var done = assert.async();
     assert.expect(1);
 
-    var request = window.indexedDBmock.open(dbName);
+    var request = indexedDb.open(dbName);
 
     request.onsuccess = function(e){
         e.target.result.close();
-        var deleteRequest = window.indexedDBmock.deleteDatabase(dbName);
+        var deleteRequest = indexedDb.deleteDatabase(dbName);
 
         deleteRequest.onsuccess = function(e){
             assert.ok(true, "Database removed");
@@ -171,7 +169,7 @@ QUnit.test("Deleting non existing Database", function (assert) {
     assert.expect(1);
 
     initionalSituation(function () {
-        var deleteRequest = window.indexedDBmock.deleteDatabase(dbName);
+        var deleteRequest = indexedDb.deleteDatabase(dbName);
 
         deleteRequest.onsuccess = function(e){
             assert.ok(true, "Database removed");
@@ -183,5 +181,6 @@ QUnit.test("Deleting non existing Database", function (assert) {
         };
     }, done, assert);
 });
+/* TODO add tests for version change event */
 
 

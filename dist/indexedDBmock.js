@@ -185,6 +185,11 @@
                 };
             }
 
+            if(mode !== TransactionTypes.READONLY || mode !== TransactionTypes.READWRITE || mode !== TransactionTypes.VERSIONCHANGE)
+            {
+                mode = TransactionTypes.READONLY;
+            }
+
             if(objectStoreNames) {
                 for (var i = 0; i < objectStoreNames.length; i++) {
                     var objectStoreFound = false;
