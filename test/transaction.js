@@ -13,7 +13,7 @@ QUnit.test("Opening transaction", function (assert) {
             try{
                 var transaction = e.target.result.transaction([objectStoreName]);
                 assert.ok(true, "Transaction open");
-                assert.equal(transaction.mode, "readonly");
+                assert.equal(transaction.mode, "readonly", "readonly");
 
                 transaction.oncomplete = function (e){
                     assert.ok(true, "Transaction commited");
@@ -54,7 +54,7 @@ QUnit.test("Opening readonly transaction", function (assert) {
             try{
                 var transaction = e.target.result.transaction([objectStoreName]);
                 assert.ok(true, "Transaction open");
-                assert.equal(transaction.mode, mode);
+                assert.equal(transaction.mode, mode, mode);
 
                 transaction.oncomplete = function (e){
                     assert.ok(true, "Transaction commited");
@@ -95,7 +95,7 @@ QUnit.test("Opening readwrite transaction", function (assert) {
             try{
                 var transaction = e.target.result.transaction([objectStoreName], mode);
                 assert.ok(true, "Transaction open");
-                assert.equal(transaction.mode, mode);
+                assert.equal(transaction.mode, mode, mode);
 
                 transaction.oncomplete = function (e){
                     assert.ok(true, "Transaction commited");
@@ -193,7 +193,7 @@ QUnit.test("Opening transaction - without objectStore", function (assert) {
                 };
             }
             catch (ex) {
-                assert.equal(ex.name, "InvalidAccessError");
+                assert.equal(ex.name, "InvalidAccessError", "InvalidAccessError");
                 e.target.result.close();
                 done();
             }
@@ -232,7 +232,7 @@ QUnit.test("Opening transaction - non existing objectStore", function (assert) {
                 };
             }
             catch (ex) {
-                assert.equal(ex.name, "NotFoundError");
+                assert.equal(ex.name, "NotFoundError", "NotFoundError");
                 e.target.result.close();
                 done();
             }

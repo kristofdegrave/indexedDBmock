@@ -185,7 +185,7 @@
                 };
             }
 
-            if(mode !== TransactionTypes.READONLY || mode !== TransactionTypes.READWRITE || mode !== TransactionTypes.VERSIONCHANGE)
+            if(mode !== TransactionTypes.READONLY && mode !== TransactionTypes.READWRITE && mode !== TransactionTypes.VERSIONCHANGE)
             {
                 mode = TransactionTypes.READONLY;
             }
