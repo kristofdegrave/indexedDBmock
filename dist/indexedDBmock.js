@@ -58,11 +58,8 @@
                             db.version = version;
 
                             if (typeof returnObj.onupgradeneeded === 'function') {
-
                                 returnObj.onupgradeneeded(returnObj);
-
-                                db.objectStores = returnObj.target.transaction.db._objectStores;
-                                db.objectStoreNames = returnObj.target.transaction.db.objectStoreNames;
+                                returnObj.target.transaction.__commit();
                             }
 
                             setTimeout(function () {
@@ -175,11 +172,18 @@
             this._objectStores = db.objectStores || [];
         },
         Transaction = function (objectStoreNames, mode, snapshot){
+            this.db = snapshot;
+            this.__active = true;
+            this._aborted = false;
+            this.__actions = [];
+
             if(!mode){
                 mode = TransactionTypes.READONLY;
             }
 
             if(mode !== TransactionTypes.VERSIONCHANGE && (!objectStoreNames || objectStoreNames.length === 0)){
+                this.aborted = true;
+                this.__checkFinished(this);
                 throw {
                     name: "InvalidAccessError"
                 };
@@ -203,6 +207,8 @@
 
                     if(!objectStoreFound)
                     {
+                        this.aborted = true;
+                        this.__checkFinished(this);
                         throw {
                             name: "NotFoundError"
                         };
@@ -211,13 +217,10 @@
             }
 
             this.mode = mode;
-            this.db = snapshot;
             this.objectStoreNames = objectStoreNames;
-
             this.db.transaction = this;
 
-            this.__active = true;
-            this._aborted = false;
+            this.__checkFinished(this);
         },
         ObjectStore = function (name, params, transaction){
             this.name = name;
@@ -227,6 +230,8 @@
             this.transaction = transaction;
 
             this._indexes = [];
+            this.__data = {};
+            this.__actions = [];
         },
         Cursor = function(){},
         Index = function(name, keyPath, params, objectStore){
@@ -236,6 +241,7 @@
             this.unique = params ? params.unique : undefined;
 
             this.objectStore = objectStore;
+            this.__data = {};
         };
 
     Connection.prototype = function () {
@@ -248,17 +254,21 @@
         }
         function transaction(objectStoreNames, mode) {
             var trans = new Transaction(objectStoreNames, mode, new Snapshot(this._db, this));
-            this._db.transactions.push(transaction);
 
-            setTimeout(function () {
-                if (typeof trans.oncomplete === 'function' && !trans._aborted) {
-                    trans.target = trans;
-                    trans.target.result = transaction;
-                    trans.target.readyState = "done";
-
-                    trans.oncomplete(trans);
-                }
-            }, timeout);
+            // TODO: find way to check if transaction can be commited.
+            //setTimeout(function () {
+            //    if (typeof trans.oncomplete === 'function' && !trans._aborted) {
+            //        trans.__commit();
+            //
+            //        trans.target = trans;
+            //        trans.target.result = transaction;
+            //        trans.target.readyState = "done";
+            //
+            //        trans.oncomplete(trans);
+            //
+            //        // TODO Remove transaction from array?
+            //    }
+            //}, timeout);
 
             return trans;
         }
@@ -272,6 +282,10 @@
     Snapshot.prototype = function () {
         function close() {
             this._connection.close();
+        }
+        function commit(){
+            this._db.objectStores = this._objectStores;
+            this._db.objectStoreNames = this.objectStoreNames;
         }
         function transaction(objectStoreNames, mode) {
             return this._connection.transaction(objectStoreNames, mode);
@@ -301,7 +315,7 @@
 
             return objectStore;
         }
-        function deleteObjectStore(name, parameters){
+        function deleteObjectStore(name){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
                 throw {
                     name: "InvalidStateError"
@@ -337,11 +351,32 @@
             close: close,
             transaction: transaction,
             createObjectStore: createObjectStore,
-            deleteObjectStore: deleteObjectStore
+            deleteObjectStore: deleteObjectStore,
+            __commit: commit
         };
     }();
 
     Transaction.prototype = function () {
+        function commit(){
+            checkFinished(this);
+        }
+
+        function commitInternal(context){
+            if(!context._aborted && !context.__commited) {
+                context.__commited = true;
+                context.db.__commit();
+                context.__active = false;
+
+                if (typeof context.oncomplete === 'function') {
+                    context.target = context;
+                    context.target.result = context;
+                    context.target.readyState = "done";
+
+                    context.oncomplete(context);
+                }
+            }
+        }
+
         function abort() {
             this._aborted = true;
 
@@ -362,6 +397,8 @@
         }
 
         function objectStore(name) {
+            var timestamp = (new Date()).getTime();
+            this.__actions.push(timestamp);
             if(this.mode !== TransactionTypes.VERSIONCHANGE) {
                 var objectStoreFound = false;
 
@@ -372,6 +409,8 @@
                 }
 
                 if (!objectStoreFound) {
+                    this.__actions.splice(this.__actions.indexOf(timestamp),1);
+                    checkFinished(this,undefined,timestamp);
                     throw {
                         name: "NotFoundError"
                     };
@@ -381,25 +420,81 @@
             for(var j = 0; j < this.db._objectStores.length; j++)
             {
                 if(this.db._objectStores[j].name === name){
-                    this.db._objectStores[j].transaction = this;
-                    return this.db._objectStores[j];
+                    var obj = this.db._objectStores[j];
+                    obj.transaction = this;
+                    checkFinished(this,obj,timestamp);
+                    return obj;
                 }
             }
 
+            this.__actions.splice(this.__actions.indexOf(timestamp),1);
+            checkFinished(this,undefined,timestamp);
             throw {
                 name: "NotFoundError"
             };
         }
 
+        function checkFinished(context, obj, timestamp){
+            setTimeout(function(){
+                if(!obj){
+                    if(context.__actions.length === 0){
+                        commitInternal(context);
+                    }
+                }
+                else if(obj.__finished()){
+                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                    if(context.__actions.length === 0){
+                        commitInternal(context);
+                    }
+                }
+                else
+                {
+                    checkFinished(context, obj, timestamp);
+                }
+            }, timeout);
+        }
+
         return {
             abort: abort,
-            objectStore: objectStore
+            objectStore: objectStore,
+            __commit: commit,
+            __checkFinished: checkFinished
         };
     }();
 
     ObjectStore.prototype = function (){
         function get(){
 
+        }
+        function add(data, key){
+            var context = this;
+            var timestamp = (new Date()).getTime();
+            context.__actions.push(timestamp);
+            var returnObj = {};
+
+            if(!key && !this.keyPath) {
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                throw {
+                    name: "DataError"
+                };
+            }
+
+            if(key) {
+                context.__data[key] = data;
+            }
+
+            setTimeout(function () {
+                if (typeof returnObj.onsuccess === 'function') {
+                    returnObj.target = returnObj;
+                    returnObj.target.result = key;
+                    returnObj.target.readyState = "done";
+
+                    returnObj.onsuccess(returnObj);
+                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                }
+            }, timeout);
+
+            return returnObj;
         }
 
         function createIndex(name, keyPath, parameters){
@@ -458,7 +553,6 @@
                 }
             }
         }
-
         function index(name) {
             if(this.mode !== TransactionTypes.VERSIONCHANGE) {
                 var indexFound = false;
@@ -488,11 +582,18 @@
                 name: "NotFoundError"
             };
         }
+
+        function finished (){
+            return this.__actions.length === 0;
+        }
+
         return {
             get: get,
+            add: add,
             createIndex:createIndex,
             deleteIndex:deleteIndex,
-            index: index
+            index: index,
+            __finished: finished
         };
     }();
 
