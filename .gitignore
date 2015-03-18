@@ -217,6 +217,7 @@ pip-log.txt
 
 #bower directory
 bower_components/
+lib/
 
 #node modules
 node_modules/

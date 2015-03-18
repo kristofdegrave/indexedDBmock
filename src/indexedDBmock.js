@@ -474,9 +474,7 @@
 				this.__latestKey = key;
 			}
 
-            if(!key && !this.keyPath 
-			 || key && this.keyPath
-			 || this.keyPath && !data[this.keyPath]) {
+            if(!key && !this.keyPath || key && this.keyPath || this.keyPath && !data[this.keyPath]) {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
                     name: "DataError"
