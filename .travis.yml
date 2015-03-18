@@ -11,3 +11,4 @@ deploy:
   on:
     repo: kristofdegrave/indexedDBmock
     tag: true
+    all_branches: true

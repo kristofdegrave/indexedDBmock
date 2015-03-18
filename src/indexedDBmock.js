@@ -232,6 +232,7 @@
             this._indexes = [];
             this.__data = {};
             this.__actions = [];
+			this.__latestKey = 0;
         },
         Cursor = function(){},
         Index = function(name, keyPath, params, objectStore){
@@ -254,22 +255,6 @@
         }
         function transaction(objectStoreNames, mode) {
             var trans = new Transaction(objectStoreNames, mode, new Snapshot(this._db, this));
-
-            // TODO: find way to check if transaction can be commited.
-            //setTimeout(function () {
-            //    if (typeof trans.oncomplete === 'function' && !trans._aborted) {
-            //        trans.__commit();
-            //
-            //        trans.target = trans;
-            //        trans.target.result = transaction;
-            //        trans.target.readyState = "done";
-            //
-            //        trans.oncomplete(trans);
-            //
-            //        // TODO Remove transaction from array?
-            //    }
-            //}, timeout);
-
             return trans;
         }
 
@@ -471,8 +456,27 @@
             var timestamp = (new Date()).getTime();
             context.__actions.push(timestamp);
             var returnObj = {};
+			
+			if(this.autoIncrement){
+				if(!(key && typeof key === 'number' && key > this.__latestKey))
+				{
+					key = this.__latestKey + 1;
+				}
+				
+				if(key > 9007199254740992)
+				{
+					context.__actions.splice(context.__actions.indexOf(timestamp),1);
+					throw {
+						name: "ConstraintError"
+					};
+				}
+				
+				this.__latestKey = key;
+			}
 
-            if(!key && !this.keyPath) {
+            if(!key && !this.keyPath 
+			 || key && this.keyPath
+			 || this.keyPath && !data[this.keyPath]) {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
                     name: "DataError"

@@ -118,6 +118,54 @@ function initionalSituationObjectStoreNoAutoIncrement(callBack, done, assert) {
         };
     });
 }
+function initionalSituationObjectStoreWithAutoIncrement(callBack, done, assert) {
+    initionalSituation(function () {
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function (e) {
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function () {
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function (e) {
+            if (e.type == "upgradeneeded") {
+                try {
+                    e.target.transaction.db.createObjectStore(objectStoreName, { autoIncrement: true });
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    });
+}
+function initionalSituationObjectStoreWithKeyPathNoAutoIncrement(callBack, done, assert) {
+    initionalSituation(function() {
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function (e) {
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function () {
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function (e) {
+            if (e.type == "upgradeneeded") {
+                try {
+                    e.target.transaction.db.createObjectStore(objectStoreName, {keyPath: "id", autoIncrement: false});
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    });
+}
 function initionalSituationIndex(callBack, done, assert) {
     initionalSituation(function(){
         var request = indexedDb.open(dbName, 1);
