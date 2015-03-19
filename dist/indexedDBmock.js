@@ -448,6 +448,52 @@
     }();
 
     ObjectStore.prototype = function (){
+        function isValidKey(key){
+            if(typeof key === 'number' && !isNaN(key) || typeof key === 'string' || key instanceof Date && !isNaN(key)){
+                return true;
+            }
+            if(key instanceof Array)
+            {
+                for (var i = key.length - 1; i >= 0; i--) {
+                    if(!isValidKey(key[i])){
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function isObject(item) {
+           return item.constructor.name === "Object";
+        }
+            
+        function getPropertyValue(data, propertyName) {
+            var structure = propertyName.split(".");
+            var value = data;
+            for (var i = 0; i < structure.length; i++) {
+                if (value) {
+                    value = value[structure[i]];
+                }
+            }
+            return value;
+        }
+
+        function setPropertyValue(data, propertyName, value) {
+            var structure = propertyName.split(".");
+            var obj = data;
+            for (var i = 0; i < structure.length; i++) {
+                if (i != (structure.length - 1)) {
+                    obj[structure[i]] = {};
+                    obj = obj[structure[i]];
+                }
+                else {
+                    obj[structure[i]] = value;
+                }
+            }
+            return obj;
+        }
+
         function get(){
 
         }
@@ -475,6 +521,30 @@
 			}
 
             if(!key && !this.keyPath || key && this.keyPath || this.keyPath && !data[this.keyPath]) {
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                throw {
+                    name: "DataError"
+                };
+            }
+
+            if(this.keyPath){
+                if(!isObject(data)){
+                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                    throw {
+                        name: "DataError"
+                    };
+                }
+
+                if(this.autoIncrement){
+                    setPropertyValue(data, this.keyPath, key);
+                }
+                else
+                {
+                    key = getPropertyValue(data, this.keyPath);
+                }
+            }
+
+            if(!isValidKey(key)) {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
                     name: "DataError"
