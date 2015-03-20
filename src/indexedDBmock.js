@@ -343,13 +343,21 @@
 
     Transaction.prototype = function () {
         function commit(){
-            checkFinished(this);
+            //checkFinished(this);
+            for (var i = 0; i < this.db._objectStores.length; i++) {
+                var timestamp = (new Date()).getTime();
+                this.__actions.push(timestamp);
+                checkFinished(this,this.db._objectStores[i], timestamp);
+            }
         }
 
         function commitInternal(context){
             if(!context._aborted && !context.__commited) {
                 context.__commited = true;
-                context.db.__commit();
+                if(this.mode != "readonly")
+                {
+                    context.db.__commit();
+                }
                 context.__active = false;
 
                 if (typeof context.oncomplete === 'function') {
@@ -467,6 +475,11 @@
         function isObject(item) {
            return item.constructor.name === "Object";
         }
+
+        function isFunction(functionToCheck) {
+            var getType = {};
+            return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
+        }
             
         function getPropertyValue(data, propertyName) {
             var structure = propertyName.split(".");
@@ -494,6 +507,20 @@
             return obj;
         }
 
+        function containsFunction(data){
+            for(var prop in data){
+                if(isFunction(data[prop])){
+                    return true;
+                }
+                if(isObject(prop)){
+                    if(containsFunction(data[prop])){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         function get(){
 
         }
@@ -502,14 +529,32 @@
             var timestamp = (new Date()).getTime();
             context.__actions.push(timestamp);
             var returnObj = {};
-			
+            var internalKey = key;
+
+            if(this.transaction.mode == TransactionTypes.READONLY){
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                throw {
+                    name: "ReadOnlyError"
+                };
+            }
+
+            if(!this.keyPath && !key && !this.autoIncrement || this.keyPath && (key || !data[this.keyPath] && !this.autoIncrement || !isObject(data))) {
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                throw {
+                    name: "DataError"
+                };
+            }
+
 			if(this.autoIncrement){
-				if(!(key && typeof key === 'number' && key > this.__latestKey))
+				if(!(internalKey && typeof internalKey === 'number' && internalKey > this.__latestKey))
 				{
-					key = this.__latestKey + 1;
+					internalKey = this.__latestKey + 1;
+                    if(this.keyPath){
+                        setPropertyValue(data, this.keyPath, internalKey);
+                    }
 				}
 				
-				if(key > 9007199254740992)
+				if(internalKey > 9007199254740992)
 				{
 					context.__actions.splice(context.__actions.indexOf(timestamp),1);
 					throw {
@@ -517,53 +562,45 @@
 					};
 				}
 				
-				this.__latestKey = key;
+				this.__latestKey = internalKey;
 			}
+            else if(this.keyPath){
+                internalKey = getPropertyValue(data, this.keyPath);
+            }
 
-            if(!key && !this.keyPath || key && this.keyPath || this.keyPath && !data[this.keyPath]) {
+            if(!isValidKey(internalKey)) {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
                     name: "DataError"
                 };
             }
 
-            if(this.keyPath){
-                if(!isObject(data)){
-                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                    throw {
-                        name: "DataError"
-                    };
-                }
-
-                if(this.autoIncrement){
-                    setPropertyValue(data, this.keyPath, key);
-                }
-                else
-                {
-                    key = getPropertyValue(data, this.keyPath);
-                }
-            }
-
-            if(!isValidKey(key)) {
+            if(context.__data[internalKey])
+            {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
-                    name: "DataError"
+                    name: "ConstraintError"
                 };
             }
 
-            if(key) {
-                context.__data[key] = data;
+            if(containsFunction(data)){
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                throw {
+                    name: "DataCloneError"
+                };
             }
+
+            context.__data[internalKey] = data;
 
             setTimeout(function () {
                 if (typeof returnObj.onsuccess === 'function') {
                     returnObj.target = returnObj;
-                    returnObj.target.result = key;
+                    returnObj.target.result = internalKey;
                     returnObj.target.readyState = "done";
 
                     returnObj.onsuccess(returnObj);
-                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 }
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
             }, timeout);
 
             return returnObj;

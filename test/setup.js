@@ -6,6 +6,7 @@ var dbName = "TestDatabase";
 var objectStoreName = "objectStore";
 var anOtherObjectStoreName = "anOtherObjectStoreName";
 var indexProperty = "name";
+var insertData = { test: "insertData", name: "name", id: 1 };
 var msgCreatingInitialSituationFailed = "Creating initial situation failed";
 
 function initionalSituation(callBack, done, assert) {
@@ -181,6 +182,56 @@ function initionalSituationObjectStoreWithKeyPathAndAutoIncrement(callBack, done
             if (e.type == "upgradeneeded") {
                 try {
                     e.target.transaction.db.createObjectStore(objectStoreName, {keyPath: "id", autoIncrement: true});
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    });
+}
+function initionalSituationObjectStoreNoAutoIncrementWithData(callBack, done, assert) {
+    initionalSituation(function() {
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function (e) {
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function () {
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function (e) {
+            if (e.type == "upgradeneeded") {
+                try {
+                    var objectstore = e.target.transaction.db.createObjectStore(objectStoreName, { autoIncrement: false });
+                    objectstore.add(insertData, insertData.id);
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    });
+}
+function initionalSituationObjectStoreWithKeyPathAndDataNoAutoIncrement(callBack, done, assert) {
+    initionalSituation(function() {
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function (e) {
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function () {
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function (e) {
+            if (e.type == "upgradeneeded") {
+                try {
+                    var objectstore = e.target.transaction.db.createObjectStore(objectStoreName, {keyPath: "id", autoIncrement: false});
+                    objectstore.add(insertData);
                 }
                 catch (ex) {
                     assert.ok(false, msgCreatingInitialSituationFailed);
