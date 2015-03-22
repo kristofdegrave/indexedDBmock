@@ -590,6 +590,23 @@
                 };
             }
 
+            for (var i = 0; i < this._indexes.length; i++) {
+                var index = this._indexes[i];
+                var indexKey = getPropertyValue(data, index.keyPath);
+                if(index.unique && indexKey && index.__data[indexKey]){
+                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                    throw {
+                        name: "ConstraintError"
+                    };
+                }
+                else{
+                    if(!index.__data[indexKey]){
+                        index.__data[indexKey] = [];
+                    }
+                    index.__data[indexKey].push({ key: key, data: data });
+                }
+            }
+
             context.__data[internalKey] = data;
 
             setTimeout(function () {

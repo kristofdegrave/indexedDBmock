@@ -54,7 +54,7 @@ QUnit.test("Inserting data", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key", function (assert) {
     var done = assert.async();
@@ -109,7 +109,7 @@ QUnit.test("Inserting data with external key", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data - objectstore autoincrement", function (assert) {
     var done = assert.async();
@@ -161,7 +161,7 @@ QUnit.test("Inserting data - objectstore autoincrement", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key - objectstore autoincrement", function (assert) {
     var done = assert.async();
@@ -215,7 +215,7 @@ QUnit.test("Inserting data with external key - objectstore autoincrement", funct
             assert.ok(false, "Database error");
             done();
         };
-	});
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key (increase autoincrement) - objectstore autoincrement", function (assert) {
     var done = assert.async();
@@ -295,7 +295,7 @@ QUnit.test("Inserting data with external key (increase autoincrement) - objectst
             assert.ok(false, "Database error");
             done();
         };
-	});
+    }, done, assert);
 });
 QUnit.test("Inserting data - objectstore keyPath", function (assert) {
     var done = assert.async();
@@ -347,7 +347,7 @@ QUnit.test("Inserting data - objectstore keyPath", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-	});
+    }, done, assert);
 });
 QUnit.test("Inserting data with inline key - objectstore keyPath", function (assert) {
     var done = assert.async();
@@ -400,7 +400,7 @@ QUnit.test("Inserting data with inline key - objectstore keyPath", function (ass
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key - objectstore keyPath", function (assert) {
     var done = assert.async();
@@ -453,7 +453,7 @@ QUnit.test("Inserting data with external key - objectstore keyPath", function (a
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
@@ -506,7 +506,7 @@ QUnit.test("Inserting data - objectstore keyPath autoincrement", function (asser
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with inline key - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
@@ -559,7 +559,7 @@ QUnit.test("Inserting data with inline key - objectstore keyPath autoincrement",
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
@@ -612,7 +612,7 @@ QUnit.test("Inserting data with external key - objectstore keyPath autoincrement
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with existing external key", function (assert) {
     var done = assert.async();
@@ -664,7 +664,7 @@ QUnit.test("Inserting data with existing external key", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with existing internal key", function (assert) {
     var done = assert.async();
@@ -769,7 +769,7 @@ QUnit.test("Inserting data with invalid key", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key - string", function (assert) {
     var done = assert.async();
@@ -824,7 +824,7 @@ QUnit.test("Inserting data with external key - string", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with external key - array", function (assert) {
     var done = assert.async();
@@ -879,7 +879,7 @@ QUnit.test("Inserting data with external key - array", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with inline key - string", function (assert) {
     var done = assert.async();
@@ -932,7 +932,7 @@ QUnit.test("Inserting data with inline key - string", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with inline key - date", function (assert) {
     var done = assert.async();
@@ -985,7 +985,7 @@ QUnit.test("Inserting data with inline key - date", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data with inline key - array", function (assert) {
     var done = assert.async();
@@ -1038,7 +1038,7 @@ QUnit.test("Inserting data with inline key - array", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data - ReadOnly transaction", function (assert) {
     var done = assert.async();
@@ -1092,7 +1092,7 @@ QUnit.test("Inserting data - ReadOnly transaction", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
 QUnit.test("Inserting data - DataCloneError", function (assert) {
     var done = assert.async();
@@ -1149,7 +1149,57 @@ QUnit.test("Inserting data - DataCloneError", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
 });
+QUnit.test("Inserting data with existing index key - unique index ", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
 
-// TODO check unique index
+    initionalSituationIndexUniqueIndexWithData(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var insertRequest = objectstore.add(insertData, insertData.id + 1);
+
+                    insertRequest.onsuccess = function (e){
+                        ok(false, "data inserted");
+                    };
+                    insertRequest.onerror = function (e){
+                        equal(e.error.type, "ConstraintError", "ConstraintError");
+                    };
+                }
+                catch (ex){
+                    equal(ex.name, "ConstraintError", "ConstraintError");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (){
+                    assert.ok(false, "Transaction aborted");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});

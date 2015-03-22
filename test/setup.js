@@ -266,3 +266,30 @@ function initionalSituationIndex(callBack, done, assert) {
         };
     }, done, assert);
 }
+
+function initionalSituationIndexUniqueIndexWithData(callBack, done, assert) {
+    initionalSituation(function(){
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function(e){
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function(){
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function(e){
+            if (e.type == "upgradeneeded") {
+                try {
+                    var objectstore = e.target.transaction.db.createObjectStore(objectStoreName);
+                    objectstore.createIndex(indexProperty, indexProperty, { unique: true });
+                    objectstore.add(insertData, insertData.id);
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    }, done, assert);
+}
