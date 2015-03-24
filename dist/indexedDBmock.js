@@ -593,17 +593,49 @@
             for (var i = 0; i < this._indexes.length; i++) {
                 var index = this._indexes[i];
                 var indexKey = getPropertyValue(data, index.keyPath);
-                if(index.unique && indexKey && index.__data[indexKey]){
-                    context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                    throw {
-                        name: "ConstraintError"
-                    };
+
+                // If no value is found using the index keyPath, ignore
+                if(!indexKey){
+                    continue;
+                }
+
+                if(index.multiEntry && indexKey instanceof Array){
+                    var keys = {};
+                    for (var j = 0; j < indexKey.length; j++) {
+                        if(isValidKey(indexKey[j]) && !keys[indexKey[j]]){
+                            keys[indexKey[j]] = indexKey[j];
+                            if(index.unique && index.__data[indexKey[j]]){
+                                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                                throw {
+                                    name: "ConstraintError"
+                                };
+                            }
+                            else{
+                                if(!index.__data[indexKey[j]]){
+                                    index.__data[indexKey[j]] = [];
+                                }
+                                index.__data[indexKey[j]].push({ key: key, data: data });
+                            }
+                        }
+                    }
                 }
                 else{
-                    if(!index.__data[indexKey]){
-                        index.__data[indexKey] = [];
+                    // If the value of the index keyPath is invalid, ingore
+                    if(!isValidKey(indexKey)){
+                        continue;
                     }
-                    index.__data[indexKey].push({ key: key, data: data });
+                    if(index.unique && index.__data[indexKey]){
+                        context.__actions.splice(context.__actions.indexOf(timestamp),1);
+                        throw {
+                            name: "ConstraintError"
+                        };
+                    }
+                    else{
+                        if(!index.__data[indexKey]){
+                            index.__data[indexKey] = [];
+                        }
+                        index.__data[indexKey].push({ key: key, data: data });
+                    }
                 }
             }
 

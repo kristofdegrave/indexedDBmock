@@ -6,7 +6,8 @@ var dbName = "TestDatabase";
 var objectStoreName = "objectStore";
 var anOtherObjectStoreName = "anOtherObjectStoreName";
 var indexProperty = "name";
-var insertData = { test: "insertData", name: "name", id: 1 };
+var indexPropertyMultiEntry = "multiEntry";
+var insertData = { test: "insertData", name: "name", id: 1, multiEntry: [1, "test", new Date(), function(){}] };
 var msgCreatingInitialSituationFailed = "Creating initial situation failed";
 
 function initionalSituation(callBack, done, assert) {
@@ -266,7 +267,6 @@ function initionalSituationIndex(callBack, done, assert) {
         };
     }, done, assert);
 }
-
 function initionalSituationIndexUniqueIndexWithData(callBack, done, assert) {
     initionalSituation(function(){
         var request = indexedDb.open(dbName, 1);
@@ -283,6 +283,32 @@ function initionalSituationIndexUniqueIndexWithData(callBack, done, assert) {
                 try {
                     var objectstore = e.target.transaction.db.createObjectStore(objectStoreName);
                     objectstore.createIndex(indexProperty, indexProperty, { unique: true });
+                    objectstore.add(insertData, insertData.id);
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    }, done, assert);
+}
+function initionalSituationIndexUniqueMultiEntryIndexWithData(callBack, done, assert) {
+    initionalSituation(function(){
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function(e){
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function(){
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function(e){
+            if (e.type == "upgradeneeded") {
+                try {
+                    var objectstore = e.target.transaction.db.createObjectStore(objectStoreName);
+                    objectstore.createIndex(indexPropertyMultiEntry, indexPropertyMultiEntry, { unique: true, multiEntry: true });
                     objectstore.add(insertData, insertData.id);
                 }
                 catch (ex) {

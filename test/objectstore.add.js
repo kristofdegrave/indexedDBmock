@@ -1203,3 +1203,55 @@ QUnit.test("Inserting data with existing index key - unique index ", function (a
         };
     }, done, assert);
 });
+QUnit.test("Inserting data with existing index key - unique multientry index ", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationIndexUniqueMultiEntryIndexWithData(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var insertRequest = objectstore.add(insertData, insertData.id + 1);
+
+                    insertRequest.onsuccess = function (e){
+                        ok(false, "data inserted");
+                    };
+                    insertRequest.onerror = function (e){
+                        equal(e.error.type, "ConstraintError", "ConstraintError");
+                    };
+                }
+                catch (ex){
+                    equal(ex.name, "ConstraintError", "ConstraintError");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (){
+                    assert.ok(false, "Transaction aborted");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
