@@ -7,7 +7,7 @@ var objectStoreName = "objectStore";
 var anOtherObjectStoreName = "anOtherObjectStoreName";
 var indexProperty = "name";
 var indexPropertyMultiEntry = "multiEntry";
-var insertData = { test: "insertData", name: "name", id: 1, multiEntry: [1, "test", new Date(), function(){}] };
+var addData = { test: "addData", name: "name", id: 1, multiEntry: [1, "test", new Date(), function(){}] };
 var msgCreatingInitialSituationFailed = "Creating initial situation failed";
 
 function initionalSituation(callBack, done, assert) {
@@ -207,7 +207,7 @@ function initionalSituationObjectStoreNoAutoIncrementWithData(callBack, done, as
             if (e.type == "upgradeneeded") {
                 try {
                     var objectstore = e.target.transaction.db.createObjectStore(objectStoreName, { autoIncrement: false });
-                    objectstore.add(insertData, insertData.id);
+                    objectstore.add(addData, addData.id);
                 }
                 catch (ex) {
                     assert.ok(false, msgCreatingInitialSituationFailed);
@@ -232,7 +232,7 @@ function initionalSituationObjectStoreWithKeyPathAndDataNoAutoIncrement(callBack
             if (e.type == "upgradeneeded") {
                 try {
                     var objectstore = e.target.transaction.db.createObjectStore(objectStoreName, {keyPath: "id", autoIncrement: false});
-                    objectstore.add(insertData);
+                    objectstore.add(addData);
                 }
                 catch (ex) {
                     assert.ok(false, msgCreatingInitialSituationFailed);
@@ -283,7 +283,7 @@ function initionalSituationIndexUniqueIndexWithData(callBack, done, assert) {
                 try {
                     var objectstore = e.target.transaction.db.createObjectStore(objectStoreName);
                     objectstore.createIndex(indexProperty, indexProperty, { unique: true });
-                    objectstore.add(insertData, insertData.id);
+                    objectstore.add(addData, addData.id);
                 }
                 catch (ex) {
                     assert.ok(false, msgCreatingInitialSituationFailed);
@@ -309,7 +309,7 @@ function initionalSituationIndexUniqueMultiEntryIndexWithData(callBack, done, as
                 try {
                     var objectstore = e.target.transaction.db.createObjectStore(objectStoreName);
                     objectstore.createIndex(indexPropertyMultiEntry, indexPropertyMultiEntry, { unique: true, multiEntry: true });
-                    objectstore.add(insertData, insertData.id);
+                    objectstore.add(addData, addData.id);
                 }
                 catch (ex) {
                     assert.ok(false, msgCreatingInitialSituationFailed);

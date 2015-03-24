@@ -524,33 +524,38 @@
         function get(){
 
         }
+        function put(data, key){
+            return persist(this, data, key, false);
+        } 
         function add(data, key){
-            var context = this;
+            return persist(this, data, key, true);
+        }   
+        function persist(context, data, key, noOverWrite){
             var timestamp = (new Date()).getTime();
             context.__actions.push(timestamp);
             var returnObj = {};
             var internalKey = key;
 
-            if(this.transaction.mode == TransactionTypes.READONLY){
+            if(context.transaction.mode == TransactionTypes.READONLY){
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
                     name: "ReadOnlyError"
                 };
             }
 
-            if(!this.keyPath && !key && !this.autoIncrement || this.keyPath && (key || !data[this.keyPath] && !this.autoIncrement || !isObject(data))) {
+            if(!context.keyPath && !key && !context.autoIncrement || context.keyPath && (key || !data[context.keyPath] && !context.autoIncrement || !isObject(data))) {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
                     name: "DataError"
                 };
             }
 
-			if(this.autoIncrement){
-				if(!(internalKey && typeof internalKey === 'number' && internalKey > this.__latestKey))
+			if(context.autoIncrement){
+				if(!(internalKey && typeof internalKey === 'number' && internalKey > context.__latestKey))
 				{
-					internalKey = this.__latestKey + 1;
-                    if(this.keyPath){
-                        setPropertyValue(data, this.keyPath, internalKey);
+					internalKey = context.__latestKey + 1;
+                    if(context.keyPath){
+                        setPropertyValue(data, context.keyPath, internalKey);
                     }
 				}
 				
@@ -562,10 +567,10 @@
 					};
 				}
 				
-				this.__latestKey = internalKey;
+				context.__latestKey = internalKey;
 			}
-            else if(this.keyPath){
-                internalKey = getPropertyValue(data, this.keyPath);
+            else if(context.keyPath){
+                internalKey = getPropertyValue(data, context.keyPath);
             }
 
             if(!isValidKey(internalKey)) {
@@ -575,7 +580,7 @@
                 };
             }
 
-            if(context.__data[internalKey])
+            if(noOverWrite && context.__data[internalKey])
             {
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                 throw {
@@ -590,8 +595,20 @@
                 };
             }
 
-            for (var i = 0; i < this._indexes.length; i++) {
-                var index = this._indexes[i];
+            for (var i = 0; i < context._indexes.length; i++) {
+                var index = context._indexes[i];
+
+                // If noOverWrite is false remove all existing records in the index for the key
+                if(!noOverWrite){
+                    for (var j = 0; j < index.__data.length; j++) {
+                        for (var k = 0; k < index.__data[j].length; k++) {
+                            if(index.__data[j][k].key == key){
+                                index.__data[j].splice(k,1);
+                            }
+                        };
+                    };
+                }
+
                 var indexKey = getPropertyValue(data, index.keyPath);
 
                 // If no value is found using the index keyPath, ignore
@@ -674,6 +691,8 @@
                 }
             }
 
+            // TODO: Import existing data in the object store
+
             var index = new Index(name, keyPath, parameters, this);
             this._indexes.push(index);
             this.indexNames.push(name);
@@ -748,6 +767,7 @@
         return {
             get: get,
             add: add,
+            put: put,
             createIndex:createIndex,
             deleteIndex:deleteIndex,
             index: index,
