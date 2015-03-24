@@ -605,8 +605,8 @@
                             if(index.__data[j][k].key == key){
                                 index.__data[j].splice(k,1);
                             }
-                        };
-                    };
+                        }
+                    }
                 }
 
                 var indexKey = getPropertyValue(data, index.keyPath);
@@ -618,20 +618,20 @@
 
                 if(index.multiEntry && indexKey instanceof Array){
                     var keys = {};
-                    for (var j = 0; j < indexKey.length; j++) {
-                        if(isValidKey(indexKey[j]) && !keys[indexKey[j]]){
-                            keys[indexKey[j]] = indexKey[j];
-                            if(index.unique && index.__data[indexKey[j]]){
+                    for (var l = 0; l < indexKey.length; l++) {
+                        if(isValidKey(indexKey[l]) && !keys[indexKey[l]]){
+                            keys[indexKey[l]] = indexKey[l];
+                            if(index.unique && index.__data[indexKey[l]]){
                                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
                                 throw {
                                     name: "ConstraintError"
                                 };
                             }
                             else{
-                                if(!index.__data[indexKey[j]]){
-                                    index.__data[indexKey[j]] = [];
+                                if(!index.__data[indexKey[l]]){
+                                    index.__data[indexKey[l]] = [];
                                 }
-                                index.__data[indexKey[j]].push({ key: key, data: data });
+                                index.__data[indexKey[l]].push({ key: key, data: data });
                             }
                         }
                     }
