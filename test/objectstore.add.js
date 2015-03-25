@@ -5,7 +5,7 @@
 QUnit.module("Add");
 QUnit.test("Adding data", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var data = { test: "test" };
 
     initionalSituationObjectStoreNoAutoIncrement(function () {
@@ -17,7 +17,6 @@ QUnit.test("Adding data", function (assert) {
 
                 try{
                     var addRequest = objectstore.add(data);
-
                     addRequest.onsuccess = function (e){
                         ok(false, "data added");
                     };
@@ -33,8 +32,8 @@ QUnit.test("Adding data", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -299,7 +298,7 @@ QUnit.test("Adding data with external key (increase autoincrement) - objectstore
 });
 QUnit.test("Adding data - objectstore keyPath", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 	var data = { test: "test" };
 	initionalSituationObjectStoreWithKeyPathNoAutoIncrement(function () {
 		var request = indexedDb.open(dbName);
@@ -326,8 +325,8 @@ QUnit.test("Adding data - objectstore keyPath", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -404,7 +403,7 @@ QUnit.test("Adding data with inline key - objectstore keyPath", function (assert
 });
 QUnit.test("Adding data with external key - objectstore keyPath", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var data = { test: "test" };
     var key = 1;
     initionalSituationObjectStoreWithKeyPathNoAutoIncrement(function () {
@@ -432,8 +431,8 @@ QUnit.test("Adding data with external key - objectstore keyPath", function (asse
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -563,7 +562,7 @@ QUnit.test("Adding data with inline key - objectstore keyPath autoincrement", fu
 });
 QUnit.test("Adding data with external key - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var data = { test: "test" };
     var key = 1;
     initionalSituationObjectStoreWithKeyPathAndAutoIncrement(function () {
@@ -591,8 +590,8 @@ QUnit.test("Adding data with external key - objectstore keyPath autoincrement", 
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -616,7 +615,7 @@ QUnit.test("Adding data with external key - objectstore keyPath autoincrement", 
 });
 QUnit.test("Adding data with existing external key", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreNoAutoIncrementWithData(function () {
         var request = indexedDb.open(dbName);
@@ -643,8 +642,8 @@ QUnit.test("Adding data with existing external key", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -668,7 +667,7 @@ QUnit.test("Adding data with existing external key", function (assert) {
 });
 QUnit.test("Adding data with existing internal key", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -695,8 +694,8 @@ QUnit.test("Adding data with existing internal key", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -720,7 +719,7 @@ QUnit.test("Adding data with existing internal key", function (assert) {
 });
 QUnit.test("Adding data with invalid key", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var data = { test: "test" };
 
     initionalSituationObjectStoreNoAutoIncrement(function () {
@@ -748,8 +747,8 @@ QUnit.test("Adding data with invalid key", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -1042,7 +1041,7 @@ QUnit.test("Adding data with inline key - array", function (assert) {
 });
 QUnit.test("Adding data - ReadOnly transaction", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var data = { test: "test" };
     var key = "key";
 
@@ -1071,8 +1070,8 @@ QUnit.test("Adding data - ReadOnly transaction", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -1096,7 +1095,7 @@ QUnit.test("Adding data - ReadOnly transaction", function (assert) {
 });
 QUnit.test("Adding data - DataCloneError", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var data = { test: "test", toString: function () {
                                             return true;
                                         }
@@ -1128,8 +1127,8 @@ QUnit.test("Adding data - DataCloneError", function (assert) {
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -1153,7 +1152,7 @@ QUnit.test("Adding data - DataCloneError", function (assert) {
 });
 QUnit.test("Adding data with existing index key - unique index ", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationIndexUniqueIndexWithData(function () {
         var request = indexedDb.open(dbName);
@@ -1180,8 +1179,8 @@ QUnit.test("Adding data with existing index key - unique index ", function (asse
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -1205,7 +1204,7 @@ QUnit.test("Adding data with existing index key - unique index ", function (asse
 });
 QUnit.test("Adding data with existing index key - unique multientry index ", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationIndexUniqueMultiEntryIndexWithData(function () {
         var request = indexedDb.open(dbName);
@@ -1232,8 +1231,8 @@ QUnit.test("Adding data with existing index key - unique multientry index ", fun
                     e.target.db.close();
                     done();
                 };
-                transaction.onabort = function (){
-                    assert.ok(false, "Transaction aborted");
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
