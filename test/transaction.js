@@ -243,3 +243,4 @@ QUnit.test("Opening transaction - non existing objectStore", function (assert) {
         };
     }, done, assert);
 });
+// TODO: Test concurrent transactions

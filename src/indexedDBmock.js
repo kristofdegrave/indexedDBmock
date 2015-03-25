@@ -521,8 +521,12 @@
             return false;
         }
 
-        function get(){
+        function get(key){
+            var timestamp = (new Date()).getTime();
+            context.__actions.push(timestamp);
+            var returnObj = {};
 
+            return returnObj;
         }
         function put(data, key){
             return persist(this, data, key, false);
@@ -531,7 +535,7 @@
             return persist(this, data, key, true);
         } 
 
-        function error(context, request, error){
+        function error(context, request, err){
             context.transaction.abort();
 
             /*setTimeout(function () {
@@ -544,7 +548,7 @@
                 }
             }, timeout);*/
 
-            throw error;
+            throw err;
         }
 
         function persist(context, data, key, noOverWrite){

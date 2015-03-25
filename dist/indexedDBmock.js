@@ -521,15 +521,36 @@
             return false;
         }
 
-        function get(){
+        function get(key){
+            var timestamp = (new Date()).getTime();
+            context.__actions.push(timestamp);
+            var returnObj = {};
 
+            return returnObj;
         }
         function put(data, key){
             return persist(this, data, key, false);
         } 
         function add(data, key){
             return persist(this, data, key, true);
-        }   
+        } 
+
+        function error(context, request, err){
+            context.transaction.abort();
+
+            /*setTimeout(function () {
+                if (typeof returnObj.onsuccess === 'function') {
+                    returnObj.target = returnObj;
+                    returnObj.target.readyState = "done";
+                    returnObj.target.error = error;
+
+                    returnObj.onerror(returnObj);
+                }
+            }, timeout);*/
+
+            throw err;
+        }
+
         function persist(context, data, key, noOverWrite){
             var timestamp = (new Date()).getTime();
             context.__actions.push(timestamp);
@@ -537,17 +558,11 @@
             var internalKey = key;
 
             if(context.transaction.mode == TransactionTypes.READONLY){
-                context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                throw {
-                    name: "ReadOnlyError"
-                };
+                error(context, returnObj, { name: "ReadOnlyError" });
             }
 
             if(!context.keyPath && !key && !context.autoIncrement || context.keyPath && (key || !data[context.keyPath] && !context.autoIncrement || !isObject(data))) {
-                context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                throw {
-                    name: "DataError"
-                };
+                error(context, returnObj, { name: "DataError" });
             }
 
 			if(context.autoIncrement){
@@ -561,10 +576,7 @@
 				
 				if(internalKey > 9007199254740992)
 				{
-					context.__actions.splice(context.__actions.indexOf(timestamp),1);
-					throw {
-						name: "ConstraintError"
-					};
+                    error(context, returnObj, { name: "ConstraintError" });
 				}
 				
 				context.__latestKey = internalKey;
@@ -574,25 +586,16 @@
             }
 
             if(!isValidKey(internalKey)) {
-                context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                throw {
-                    name: "DataError"
-                };
+                error(context, returnObj, { name: "DataError" });
             }
 
             if(noOverWrite && context.__data[internalKey])
             {
-                context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                throw {
-                    name: "ConstraintError"
-                };
+                error(context, returnObj, { name: "ConstraintError" });
             }
 
             if(containsFunction(data)){
-                context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                throw {
-                    name: "DataCloneError"
-                };
+                error(context, returnObj, { name: "DataCloneError" });
             }
 
             for (var i = 0; i < context._indexes.length; i++) {
@@ -622,10 +625,7 @@
                         if(isValidKey(indexKey[l]) && !keys[indexKey[l]]){
                             keys[indexKey[l]] = indexKey[l];
                             if(index.unique && index.__data[indexKey[l]]){
-                                context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                                throw {
-                                    name: "ConstraintError"
-                                };
+                                error(context, returnObj, { name: "ConstraintError" });
                             }
                             else{
                                 if(!index.__data[indexKey[l]]){
@@ -643,9 +643,7 @@
                     }
                     if(index.unique && index.__data[indexKey]){
                         context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                        throw {
-                            name: "ConstraintError"
-                        };
+                        error(context, returnObj, { name: "ConstraintError" });
                     }
                     else{
                         if(!index.__data[indexKey]){
