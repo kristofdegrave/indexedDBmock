@@ -107,7 +107,7 @@ QUnit.test("Opening existing Database with lower version", function (assert) {
             done();
         };
         request.onerror = function(e){
-            assert.equal(e.errorCode, "VersionError", "Creating/Opening database failed");
+            assert.equal(e.target.error.name, "VersionError", "Creating/Opening database failed");
             done();
         };
         request.onupgradeneeded = function(e){

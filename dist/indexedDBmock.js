@@ -370,8 +370,15 @@
             }
         }
 
-        function abort() {
+        function abort(err) {
             this._aborted = true;
+
+            if(!err){
+                err = {
+                    name: "AbortError",
+                    message: "The transaction was aborted."
+                };
+            }
 
             var trans = this;
 
@@ -379,10 +386,7 @@
                 if (typeof trans.onabort === 'function') {
                     trans.target = trans;
                     trans.target.errorCode = 8;
-                    trans.target.error = {
-                        name: "AbortError",
-                        message: "The transaction was aborted."
-                    };
+                    trans.target.error = err;
                     trans.target.readyState = "done";
                     trans.onabort(trans);
                 }
@@ -523,8 +527,30 @@
 
         function get(key){
             var timestamp = (new Date()).getTime();
+            var context = this;
             context.__actions.push(timestamp);
             var returnObj = {};
+
+            if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
+                error(context, returnObj, { name: "InvalidStateError" });
+            }
+
+            if(!isValidKey(key)) {
+                error(context, returnObj, { name: "DataError" });
+            }
+
+            var data = context.__data[key]; 
+
+            setTimeout(function () {
+                if (typeof returnObj.onsuccess === 'function') {
+                    returnObj.target = returnObj;
+                    returnObj.target.result = data;
+                    returnObj.target.readyState = "done";
+
+                    returnObj.onsuccess(returnObj);
+                }
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+            }, timeout);
 
             return returnObj;
         }
@@ -536,18 +562,35 @@
         } 
 
         function error(context, request, err){
-            context.transaction.abort();
 
-            /*setTimeout(function () {
-                if (typeof returnObj.onsuccess === 'function') {
-                    returnObj.target = returnObj;
-                    returnObj.target.readyState = "done";
-                    returnObj.target.error = error;
+            setTimeout(function () {
+                if (typeof request.onerror === 'function') {
+                    request.target = request;
+                    request.target.readyState = "done";
+                    request.target.error = err;
 
-                    returnObj.onerror(returnObj);
+                    request.onerror(request);
                 }
-            }, timeout);*/
 
+                if (typeof context.transaction.onerror === 'function') {
+                    context.transaction.target = context.transaction;
+                    context.transaction.target.readyState = "done";
+                    context.transaction.target.error = err;
+
+                    context.transaction.onerror(context.transaction);
+                }
+
+
+                context.transaction.abort(err);
+            }, timeout);
+
+            return request;
+        }
+
+        function exception(context, err, timestamp){
+            if(timestamp){
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+            }
             throw err;
         }
 
@@ -557,12 +600,16 @@
             var returnObj = {};
             var internalKey = key;
 
+            if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
+                exception(context, { name: "InvalidStateError" }, timestamp);
+            }
+
             if(context.transaction.mode == TransactionTypes.READONLY){
-                error(context, returnObj, { name: "ReadOnlyError" });
+                exception(context, { name: "ReadOnlyError" }, timestamp);
             }
 
             if(!context.keyPath && !key && !context.autoIncrement || context.keyPath && (key || !data[context.keyPath] && !context.autoIncrement || !isObject(data))) {
-                error(context, returnObj, { name: "DataError" });
+                exception(context, { name: "DataError" }, timestamp);
             }
 
 			if(context.autoIncrement){
@@ -576,7 +623,7 @@
 				
 				if(internalKey > 9007199254740992)
 				{
-                    error(context, returnObj, { name: "ConstraintError" });
+                    return error(context, returnObj, { name: "ConstraintError" });
 				}
 				
 				context.__latestKey = internalKey;
@@ -586,32 +633,21 @@
             }
 
             if(!isValidKey(internalKey)) {
-                error(context, returnObj, { name: "DataError" });
+                exception(context, { name: "DataError" }, timestamp);
             }
 
             if(noOverWrite && context.__data[internalKey])
             {
-                error(context, returnObj, { name: "ConstraintError" });
+                return error(context, returnObj, { name: "ConstraintError" });
             }
 
             if(containsFunction(data)){
-                error(context, returnObj, { name: "DataCloneError" });
+                exception(context, { name: "DataCloneError" }, timestamp);
             }
 
+            // Check index constraints
             for (var i = 0; i < context._indexes.length; i++) {
                 var index = context._indexes[i];
-
-                // If noOverWrite is false remove all existing records in the index for the key
-                if(!noOverWrite){
-                    for (var j = 0; j < index.__data.length; j++) {
-                        for (var k = 0; k < index.__data[j].length; k++) {
-                            if(index.__data[j][k].key == key){
-                                index.__data[j].splice(k,1);
-                            }
-                        }
-                    }
-                }
-
                 var indexKey = getPropertyValue(data, index.keyPath);
 
                 // If no value is found using the index keyPath, ignore
@@ -625,13 +661,7 @@
                         if(isValidKey(indexKey[l]) && !keys[indexKey[l]]){
                             keys[indexKey[l]] = indexKey[l];
                             if(index.unique && index.__data[indexKey[l]]){
-                                error(context, returnObj, { name: "ConstraintError" });
-                            }
-                            else{
-                                if(!index.__data[indexKey[l]]){
-                                    index.__data[indexKey[l]] = [];
-                                }
-                                index.__data[indexKey[l]].push({ key: key, data: data });
+                                return error(context, returnObj, { name: "ConstraintError" });
                             }
                         }
                     }
@@ -642,18 +672,58 @@
                         continue;
                     }
                     if(index.unique && index.__data[indexKey]){
-                        context.__actions.splice(context.__actions.indexOf(timestamp),1);
-                        error(context, returnObj, { name: "ConstraintError" });
-                    }
-                    else{
-                        if(!index.__data[indexKey]){
-                            index.__data[indexKey] = [];
-                        }
-                        index.__data[indexKey].push({ key: key, data: data });
+                        return error(context, returnObj, { name: "ConstraintError" });
                     }
                 }
             }
 
+            // Set index data
+            for (var ii = 0; ii < context._indexes.length; ii++) {
+                var idx = context._indexes[ii];
+
+                // If noOverWrite is false remove all existing records in the index for the key
+                if(!noOverWrite){
+                    for (var j = 0; j < idx.__data.length; j++) {
+                        for (var k = 0; k < idx.__data[j].length; k++) {
+                            if(idx.__data[j][k].key == key){
+                                idx.__data[j].splice(k,1);
+                            }
+                        }
+                    }
+                }
+
+                var idxKey = getPropertyValue(data, idx.keyPath);
+
+                // If no value is found using the index keyPath, ignore
+                if(!idxKey){
+                    continue;
+                }
+
+                if(idx.multiEntry && idxKey instanceof Array){
+                    var kys = {};
+                    for (var m = 0; m < idxKey.length; m++) {
+                        if(isValidKey(idxKey[m]) && !kys[idxKey[m]]){
+                            kys[idxKey[m]] = idxKey[m];
+                            if(!idx.__data[idxKey[m]]){
+                                idx.__data[idxKey[m]] = [];
+                            }
+                            idx.__data[idxKey[m]].push({ key: key, data: data });
+                        }
+                    }
+                }
+                else{
+                    // If the value of the index keyPath is invalid, ingore
+                    if(!isValidKey(idxKey)){
+                        continue;
+                    }
+                    if(!idx.__data[idxKey]){
+                        idx.__data[idxKey] = [];
+                    }
+                    idx.__data[idxKey].push({ key: key, data: data });
+                }
+            }
+
+            // set objectstore data
             context.__data[internalKey] = data;
 
             setTimeout(function () {
@@ -792,3 +862,5 @@
     global.IDBIndexmock = Index;
     global.indexedDBmockDbs = dbs;
 })(window || self);
+
+// TODO: determine when exception is thrown.

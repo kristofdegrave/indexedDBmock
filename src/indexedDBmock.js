@@ -742,19 +742,14 @@
 
         function createIndex(name, keyPath, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                throw {
-                    name: "InvalidStateError"
-                };
+                exception(this, { name: "InvalidStateError" });
             }
 
             if(keyPath && keyPath instanceof Array)
             {
                 for (var i = 0; i < keyPath.length; i++){
                     if(keyPath[i] === ""){
-                        this.transaction.abort();
-                        throw {
-                            name: "InvalidAccessError"
-                        };
+                        exception(this, { name: "InvalidStateError" });
                     }
                 }
             }
@@ -769,9 +764,7 @@
         }
         function deleteIndex(name, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                throw {
-                    name: "InvalidStateError"
-                };
+                exception(this, { name: "InvalidStateError" });
             }
 
             var indexFound = false;
@@ -786,9 +779,7 @@
 
             if(!indexFound)
             {
-                throw {
-                    name: "NotFoundError"
-                };
+                exception(this, { name: "NotFoundError" });
             }
 
             for(var j = 0; j < this._indexes.length; j++)
@@ -809,9 +800,7 @@
                 }
 
                 if (!indexFound) {
-                    throw {
-                        name: "NotFoundError"
-                    };
+                    exception(this, { name: "NotFoundError" });
                 }
             }
 
@@ -823,9 +812,7 @@
                 }
             }
 
-            throw {
-                name: "NotFoundError"
-            };
+            exception(this, { name: "NotFoundError" });
         }
 
         function finished (){

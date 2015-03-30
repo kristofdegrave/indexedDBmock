@@ -1,13 +1,13 @@
 /**
  * Created by Kristof on 17/02/2015.
  */
-var indexedDb = window.indexedDBmock;
+var indexedDb = getParameterByName('imp') ? window.indexedDB : window.indexedDBmock;
 var dbName = "TestDatabase";
 var objectStoreName = "objectStore";
 var anOtherObjectStoreName = "anOtherObjectStoreName";
 var indexProperty = "name";
 var indexPropertyMultiEntry = "multiEntry";
-var addData = { test: "addData", name: "name", id: 1, multiEntry: [1, "test", new Date(), function(){}] };
+var addData = { test: "addData", name: "name", id: 1, multiEntry: [1, "test", new Date()] };
 var msgCreatingInitialSituationFailed = "Creating initial situation failed";
 
 function initionalSituation(callBack, done, assert) {
@@ -217,6 +217,31 @@ function initionalSituationObjectStoreNoAutoIncrementWithData(callBack, done, as
         };
     });
 }
+function initionalSituationObjectStoreWithKeyPathAndData(callBack, done, assert) {
+    initionalSituation(function() {
+        var request = indexedDb.open(dbName, 1);
+        request.onsuccess = function (e) {
+            e.target.result.close();
+            callBack();
+        };
+        request.onerror = function () {
+            assert.ok(false, msgCreatingInitialSituationFailed);
+            done();
+        };
+        request.onupgradeneeded = function (e) {
+            if (e.type == "upgradeneeded") {
+                try {
+                    var objectstore = e.target.transaction.db.createObjectStore(objectStoreName, { autoIncrement: false, keyPath: "id" });
+                    objectstore.add(addData);
+                }
+                catch (ex) {
+                    assert.ok(false, msgCreatingInitialSituationFailed);
+                    done();
+                }
+            }
+        };
+    });
+}
 function initionalSituationObjectStoreWithKeyPathAndDataNoAutoIncrement(callBack, done, assert) {
     initionalSituation(function() {
         var request = indexedDb.open(dbName, 1);
@@ -318,4 +343,11 @@ function initionalSituationIndexUniqueMultiEntryIndexWithData(callBack, done, as
             }
         };
     }, done, assert);
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }

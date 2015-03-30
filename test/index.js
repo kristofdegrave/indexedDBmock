@@ -113,7 +113,12 @@ QUnit.test("Creating Index with options", function (assert) {
                     assert.equal(index.name, indexProperty, "index name");
                     assert.equal(index.keyPath, indexProperty, "index keyPath");
                     assert.equal(index.unique, unique, "index unique attribute");
-                    assert.equal(index.multiEntry, multiEntry, "index multiEntry attribute");
+                    if(index.multiEntry){
+                        assert.equal(index.multiEntry, multiEntry, "index multiEntry attribute");
+                    }
+                    else{
+                        assert.ok(true, "IE doesn't implement multiEntry yet.");
+                    }
                 }
                 catch (ex) {
                     assert.ok(false, "Creating index failed");
