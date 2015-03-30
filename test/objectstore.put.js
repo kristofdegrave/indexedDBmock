@@ -5,7 +5,7 @@
 QUnit.module("Put");
 QUnit.test("Putting data", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
     var data = { test: "test" };
 
     initionalSituationObjectStoreNoAutoIncrement(function () {
@@ -22,7 +22,7 @@ QUnit.test("Putting data", function (assert) {
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "DataError", "DataError");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
@@ -51,11 +51,11 @@ QUnit.test("Putting data", function (assert) {
             }
         };
         request.onerror = function(){
-            assert.ok(false, "Database error");
+            assert.ok(false, "Database exception");
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -81,7 +81,7 @@ QUnit.test("Putting data with external key", function (assert) {
                     };
                 }
                 catch (ex){
-                    ok(false, "put error");
+                    ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -100,7 +100,7 @@ QUnit.test("Putting data with external key", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -110,7 +110,7 @@ QUnit.test("Putting data with external key", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data - objectstore autoincrement", function (assert) {
     var done = assert.async();
     assert.expect(1);
@@ -133,7 +133,7 @@ QUnit.test("Putting data - objectstore autoincrement", function (assert) {
                     };
                 }
                 catch (ex){
-                    ok(false, "put error");
+                    ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -152,7 +152,7 @@ QUnit.test("Putting data - objectstore autoincrement", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -162,7 +162,7 @@ QUnit.test("Putting data - objectstore autoincrement", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key - objectstore autoincrement", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -187,7 +187,7 @@ QUnit.test("Putting data with external key - objectstore autoincrement", functio
                     };
                 }
                 catch (ex){
-                    ok(false, "put error");
+                    ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -206,7 +206,7 @@ QUnit.test("Putting data with external key - objectstore autoincrement", functio
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -216,7 +216,7 @@ QUnit.test("Putting data with external key - objectstore autoincrement", functio
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key (increase autoincrement) - objectstore autoincrement", function (assert) {
     var done = assert.async();
     assert.expect(3);
@@ -251,7 +251,7 @@ QUnit.test("Putting data with external key (increase autoincrement) - objectstor
                                     };
                                 }
                                 catch (ex){
-                                    ok(false, "put error");
+                                    ok(false, "put exception");
                                 }
 							};
 							putRequest2.onerror = function (e){
@@ -259,7 +259,7 @@ QUnit.test("Putting data with external key (increase autoincrement) - objectstor
 							};
 						}
 						catch (ex){
-							ok(false, "put error");
+							ok(false, "put exception");
 						}
                     };
                     putRequest.onerror = function (e){
@@ -267,7 +267,7 @@ QUnit.test("Putting data with external key (increase autoincrement) - objectstor
                     };
                 }
                 catch (ex){
-                    ok(false, "put error");
+                    ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -286,7 +286,7 @@ QUnit.test("Putting data with external key (increase autoincrement) - objectstor
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -296,10 +296,10 @@ QUnit.test("Putting data with external key (increase autoincrement) - objectstor
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data - objectstore keyPath", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
 	var data = { test: "test" };
 	initionalSituationObjectStoreWithKeyPathNoAutoIncrement(function () {
 		var request = indexedDb.open(dbName);
@@ -315,7 +315,7 @@ QUnit.test("Putting data - objectstore keyPath", function (assert) {
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "DataError", "DataError");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
@@ -338,7 +338,7 @@ QUnit.test("Putting data - objectstore keyPath", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -348,7 +348,7 @@ QUnit.test("Putting data - objectstore keyPath", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with inline key - objectstore keyPath", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -372,7 +372,7 @@ QUnit.test("Putting data with inline key - objectstore keyPath", function (asser
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "put error");
+                    assert.ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -391,7 +391,7 @@ QUnit.test("Putting data with inline key - objectstore keyPath", function (asser
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -401,10 +401,10 @@ QUnit.test("Putting data with inline key - objectstore keyPath", function (asser
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key - objectstore keyPath", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
     var data = { test: "test" };
     var key = 1;
     initionalSituationObjectStoreWithKeyPathNoAutoIncrement(function () {
@@ -421,7 +421,7 @@ QUnit.test("Putting data with external key - objectstore keyPath", function (ass
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "DataError", "DataError");
+                        assert.ok(false, "Transaction exception");
                     };
                 }
                 catch (ex){
@@ -444,7 +444,7 @@ QUnit.test("Putting data with external key - objectstore keyPath", function (ass
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -454,7 +454,7 @@ QUnit.test("Putting data with external key - objectstore keyPath", function (ass
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -471,14 +471,14 @@ QUnit.test("Putting data - objectstore keyPath autoincrement", function (assert)
 
                     putRequest.onsuccess = function (e){
                         ok(true, "data putted");
-                        equal(e.target.result, data.id, "Key same as provided");
+                        equal(e.target.result, 1, "Key same as provided");
                     };
                     putRequest.onerror = function (e){
                         assert.ok(false, "put error");   
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "put error");
+                    assert.ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -497,7 +497,7 @@ QUnit.test("Putting data - objectstore keyPath autoincrement", function (assert)
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -507,7 +507,7 @@ QUnit.test("Putting data - objectstore keyPath autoincrement", function (assert)
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with inline key - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -531,7 +531,7 @@ QUnit.test("Putting data with inline key - objectstore keyPath autoincrement", f
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "put error");
+                    assert.ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -550,7 +550,7 @@ QUnit.test("Putting data with inline key - objectstore keyPath autoincrement", f
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -560,10 +560,10 @@ QUnit.test("Putting data with inline key - objectstore keyPath autoincrement", f
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key - objectstore keyPath autoincrement", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
     var data = { test: "test" };
     var key = 1;
     initionalSituationObjectStoreWithKeyPathAndAutoIncrement(function () {
@@ -580,7 +580,7 @@ QUnit.test("Putting data with external key - objectstore keyPath autoincrement",
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "DataError", "DataError");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
@@ -592,7 +592,7 @@ QUnit.test("Putting data with external key - objectstore keyPath autoincrement",
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.ok(false, "Transaction abort");
                     e.target.result.close();
                     done();
                 };
@@ -603,7 +603,7 @@ QUnit.test("Putting data with external key - objectstore keyPath autoincrement",
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -613,7 +613,7 @@ QUnit.test("Putting data with external key - objectstore keyPath autoincrement",
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with existing external key", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -633,11 +633,11 @@ QUnit.test("Putting data with existing external key", function (assert) {
                         equal(e.target.result, addData.id, "Key ok");
                     };
                     putRequest.onerror = function (e){
-                    assert.ok(false, "Insert error");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Insert error");
+                    assert.ok(false, "Put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -656,7 +656,7 @@ QUnit.test("Putting data with existing external key", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -666,7 +666,7 @@ QUnit.test("Putting data with existing external key", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with existing internal key", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -686,11 +686,11 @@ QUnit.test("Putting data with existing internal key", function (assert) {
                         equal(e.target.result, addData.id, "Key ok");
                     };
                     putRequest.onerror = function (e){
-                    assert.ok(false, "Insert error");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Insert error");
+                    assert.ok(false, "Put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -709,7 +709,7 @@ QUnit.test("Putting data with existing internal key", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -719,10 +719,10 @@ QUnit.test("Putting data with existing internal key", function (assert) {
             done();
         };
     });
-});
+    });
 QUnit.test("Putting data with invalid key", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
     var data = { test: "test" };
 
     initionalSituationObjectStoreNoAutoIncrement(function () {
@@ -739,7 +739,7 @@ QUnit.test("Putting data with invalid key", function (assert) {
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "DataError", "DataError");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
@@ -751,7 +751,7 @@ QUnit.test("Putting data with invalid key", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.ok(false, "Transaction abort");
                     e.target.result.close();
                     done();
                 };
@@ -762,7 +762,7 @@ QUnit.test("Putting data with invalid key", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -772,7 +772,7 @@ QUnit.test("Putting data with invalid key", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key - string", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -798,7 +798,7 @@ QUnit.test("Putting data with external key - string", function (assert) {
                     };
                 }
                 catch (ex){
-                    ok(false, "put error");
+                    ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -817,7 +817,7 @@ QUnit.test("Putting data with external key - string", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -827,7 +827,7 @@ QUnit.test("Putting data with external key - string", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with external key - array", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -846,14 +846,14 @@ QUnit.test("Putting data with external key - array", function (assert) {
 
                     putRequest.onsuccess = function (e){
                         ok(true, "data putted");
-                        equal(e.target.result, key, "Key ok");
+                        deepEqual(e.target.result, key, "Key ok");
                     };
                     putRequest.onerror = function (e){
                         ok(false, "put error");
                     };
                 }
                 catch (ex){
-                    ok(false, "put error");
+                    ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -872,7 +872,7 @@ QUnit.test("Putting data with external key - array", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -882,7 +882,7 @@ QUnit.test("Putting data with external key - array", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with inline key - string", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -906,7 +906,7 @@ QUnit.test("Putting data with inline key - string", function (assert) {
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "put error");
+                    assert.ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -925,7 +925,7 @@ QUnit.test("Putting data with inline key - string", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -935,7 +935,7 @@ QUnit.test("Putting data with inline key - string", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with inline key - date", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -952,14 +952,14 @@ QUnit.test("Putting data with inline key - date", function (assert) {
 
                     putRequest.onsuccess = function (e){
                         ok(true, "data putted");
-                        equal(e.target.result, data.id, "Key same as provided");
+                        deepEqual(e.target.result, data.id, "Key same as provided");
                     };
                     putRequest.onerror = function (e){
                     assert.ok(false, "put error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "put error");
+                    assert.ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -978,7 +978,7 @@ QUnit.test("Putting data with inline key - date", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -988,7 +988,7 @@ QUnit.test("Putting data with inline key - date", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with inline key - array", function (assert) {
     var done = assert.async();
     assert.expect(2);
@@ -1005,14 +1005,14 @@ QUnit.test("Putting data with inline key - array", function (assert) {
 
                     putRequest.onsuccess = function (e){
                         ok(true, "data putted");
-                        equal(e.target.result, data.id, "Key same as provided");
+                        deepEqual(e.target.result, data.id, "Key same as provided");
                     };
                     putRequest.onerror = function (e){
-                    assert.ok(false, "put error");
+                        assert.ok(false, "put error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "put error");
+                    assert.ok(false, "put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -1031,7 +1031,7 @@ QUnit.test("Putting data with inline key - array", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -1041,10 +1041,10 @@ QUnit.test("Putting data with inline key - array", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data - ReadOnly transaction", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
     var data = { test: "test" };
     var key = "key";
 
@@ -1062,7 +1062,7 @@ QUnit.test("Putting data - ReadOnly transaction", function (assert) {
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "ReadOnlyError", "ReadOnlyError");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
@@ -1074,7 +1074,7 @@ QUnit.test("Putting data - ReadOnly transaction", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.ok(false, "Transaction abort");
                     e.target.result.close();
                     done();
                 };
@@ -1085,7 +1085,7 @@ QUnit.test("Putting data - ReadOnly transaction", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -1095,10 +1095,10 @@ QUnit.test("Putting data - ReadOnly transaction", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data - DataCloneError", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(1);
     var data = { test: "test", toString: function () {
                                             return true;
                                         }
@@ -1119,7 +1119,7 @@ QUnit.test("Putting data - DataCloneError", function (assert) {
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "DataCloneError", "DataCloneError");
+                        assert.ok(false, "Put error");
                     };
                 }
                 catch (ex){
@@ -1131,7 +1131,7 @@ QUnit.test("Putting data - DataCloneError", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.ok(false, "Transaction abort");
                     e.target.result.close();
                     done();
                 };
@@ -1142,7 +1142,7 @@ QUnit.test("Putting data - DataCloneError", function (assert) {
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -1152,10 +1152,10 @@ QUnit.test("Putting data - DataCloneError", function (assert) {
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with existing index key - unique index ", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(3);
 
     initionalSituationIndexUniqueIndexWithData(function () {
         var request = indexedDb.open(dbName);
@@ -1171,11 +1171,11 @@ QUnit.test("Putting data with existing index key - unique index ", function (ass
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "ConstraintError", "ConstraintError");
+                        equal(e.target.error.name, "ConstraintError", "ConstraintError");
                     };
                 }
                 catch (ex){
-                    equal(ex.name, "ConstraintError", "ConstraintError");
+                    assert.ok(false, "Put exception");
                 }
 
                 transaction.oncomplete = function (e){
@@ -1183,18 +1183,18 @@ QUnit.test("Putting data with existing index key - unique index ", function (ass
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    equal(err.target.error.name, "ConstraintError", "ConstraintError");
                     e.target.result.close();
                     done();
                 };
-                transaction.onerror = function (){
-                    assert.ok(false, "Transaction error");
-                    e.target.result.close();
-                    done();
+                transaction.onerror = function (err){
+                    equal(err.target.error.name, "ConstraintError", "ConstraintError");
+                    //e.target.result.close();
+                    //done();
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -1204,10 +1204,10 @@ QUnit.test("Putting data with existing index key - unique index ", function (ass
             done();
         };
     }, done, assert);
-});
+    });
 QUnit.test("Putting data with existing index key - unique multientry index ", function (assert) {
     var done = assert.async();
-    assert.expect(2);
+    assert.expect(3);
 
     initionalSituationIndexUniqueMultiEntryIndexWithData(function () {
         var request = indexedDb.open(dbName);
@@ -1223,7 +1223,7 @@ QUnit.test("Putting data with existing index key - unique multientry index ", fu
                         ok(false, "data putted");
                     };
                     putRequest.onerror = function (e){
-                        equal(e.error.type, "ConstraintError", "ConstraintError");
+                        equal(e.target.error.name, "ConstraintError", "ConstraintError");
                     };
                 }
                 catch (ex){
@@ -1235,18 +1235,18 @@ QUnit.test("Putting data with existing index key - unique multientry index ", fu
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    equal(err.target.error.name, "ConstraintError", "ConstraintError");
                     e.target.result.close();
                     done();
                 };
-                transaction.onerror = function (){
-                    assert.ok(false, "Transaction error");
-                    e.target.result.close();
-                    done();
+                transaction.onerror = function (err){
+                    equal(err.target.error.name, "ConstraintError", "ConstraintError");
+                    //e.target.result.close();
+                    //done();
                 };
             }
             catch (ex) {
-                assert.ok(false, "Transaction error");
+                assert.ok(false, "Transaction exception");
                 e.target.result.close();
                 done();
             }
@@ -1256,4 +1256,5 @@ QUnit.test("Putting data with existing index key - unique multientry index ", fu
             done();
         };
     }, done, assert);
-});
+    });
+// TODO: test adding data to a deleted objectstore
