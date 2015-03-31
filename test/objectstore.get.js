@@ -157,3 +157,4 @@ QUnit.test("Retrieving data - internal key", function (assert) {
         };
     }, done, assert);
 });
+// TODO Add support for key ranges

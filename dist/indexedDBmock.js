@@ -243,6 +243,11 @@
 
             this.objectStore = objectStore;
             this.__data = {};
+        }, KeyRange = function(lower, upper, lowerOpen, upperOpen){
+            this.lower = lower;
+            this.upper = upper;
+            this.lowerOpen = lowerOpen ? lowerOpen : false;
+            this.upperOpen = upperOpen ? upperOpen : false;
         };
 
     Connection.prototype = function () {
@@ -460,22 +465,6 @@
     }();
 
     ObjectStore.prototype = function (){
-        function isValidKey(key){
-            if(typeof key === 'number' && !isNaN(key) || typeof key === 'string' || key instanceof Date && !isNaN(key)){
-                return true;
-            }
-            if(key instanceof Array)
-            {
-                for (var i = key.length - 1; i >= 0; i--) {
-                    if(!isValidKey(key[i])){
-                        return false;
-                    }
-                }
-                return true;
-            }
-            return false;
-        }
-
         function isObject(item) {
            return item.constructor.name === "Object";
         }
@@ -742,19 +731,14 @@
 
         function createIndex(name, keyPath, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                throw {
-                    name: "InvalidStateError"
-                };
+                exception(this, { name: "InvalidStateError" });
             }
 
             if(keyPath && keyPath instanceof Array)
             {
                 for (var i = 0; i < keyPath.length; i++){
                     if(keyPath[i] === ""){
-                        this.transaction.abort();
-                        throw {
-                            name: "InvalidAccessError"
-                        };
+                        exception(this, { name: "InvalidStateError" });
                     }
                 }
             }
@@ -769,9 +753,7 @@
         }
         function deleteIndex(name, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                throw {
-                    name: "InvalidStateError"
-                };
+                exception(this, { name: "InvalidStateError" });
             }
 
             var indexFound = false;
@@ -786,9 +768,7 @@
 
             if(!indexFound)
             {
-                throw {
-                    name: "NotFoundError"
-                };
+                exception(this, { name: "NotFoundError" });
             }
 
             for(var j = 0; j < this._indexes.length; j++)
@@ -809,9 +789,7 @@
                 }
 
                 if (!indexFound) {
-                    throw {
-                        name: "NotFoundError"
-                    };
+                    exception(this, { name: "NotFoundError" });
                 }
             }
 
@@ -823,9 +801,7 @@
                 }
             }
 
-            throw {
-                name: "NotFoundError"
-            };
+            exception(this, { name: "NotFoundError" });
         }
 
         function finished (){
@@ -853,6 +829,60 @@
         };
     }();
 
+    KeyRange.only = function(value){
+        if(!isValidKey(value)){
+            throw {
+                name: "DataError"
+            };
+        }
+        return new KeyRange(value, value, false, false);
+    };
+
+    KeyRange.lowerBound = function(lower, open) {
+        if(!isValidKey(lower)){
+            throw {
+                name: "DataError"
+            };
+        }
+        return new KeyRange(lower, undefined, open ? open : false, true);
+    };
+
+    KeyRange.upperBound = function(upper, open) {
+        if(!isValidKey(upper)){
+            throw {
+                name: "DataError"
+            };
+        }
+        return new KeyRange(undefined, upper, true, open ? open : false);
+    };
+
+    KeyRange.bound = function(lower, upper, lowerOpen, upperOpen) {
+        if(!isValidKey(lower) || !isValidKey(upper) || upper < lower || (upper === lower && !!upperOpen && !!lowerOpen)){
+            throw {
+                name: "DataError"
+            };
+        }
+
+        return new KeyRange(lower, upper, lowerOpen ? lowerOpen : false, upperOpen ? upperOpen : false);
+    };
+
+
+    function isValidKey(key){
+        if(typeof key === 'number' && !isNaN(key) || typeof key === 'string' || key instanceof Date && !isNaN(key)){
+            return true;
+        }
+        if(key instanceof Array)
+        {
+            for (var i = key.length - 1; i >= 0; i--) {
+                if(!isValidKey(key[i])){
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     global.indexedDBmock = indexeddb;
     global.IDBCursormock = Cursor;
     global.IDBDatabasemock = Snapshot;
@@ -860,6 +890,7 @@
     global.IDBObjectStoremock = ObjectStore;
     global.IDBRequestmock = ObjectStore;
     global.IDBIndexmock = Index;
+    global.IDBKeyRangemock = KeyRange;
     global.indexedDBmockDbs = dbs;
 })(window || self);
 

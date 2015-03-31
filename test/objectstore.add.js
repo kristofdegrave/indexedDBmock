@@ -2,7 +2,7 @@
  * Created by Kristof on 10/03/2015.
  */
 
-QUnit.module("Add");
+QUnit.module("Objectstore - Add");
 QUnit.test("Adding data", function (assert) {
     var done = assert.async();
     assert.expect(2);

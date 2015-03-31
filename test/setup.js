@@ -2,6 +2,7 @@
  * Created by Kristof on 17/02/2015.
  */
 var indexedDb = getParameterByName('imp') ? window.indexedDB : window.indexedDBmock;
+var KeyRange = getParameterByName('imp') ? window.IDBKeyRange : window.IDBKeyRangemock;
 var dbName = "TestDatabase";
 var objectStoreName = "objectStore";
 var anOtherObjectStoreName = "anOtherObjectStoreName";
