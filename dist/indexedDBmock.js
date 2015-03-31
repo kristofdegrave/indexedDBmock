@@ -231,6 +231,7 @@
 
             this._indexes = [];
             this.__data = {};
+            this.__keys = [];
             this.__actions = [];
 			this.__latestKey = 0;
         },
@@ -519,16 +520,28 @@
             var context = this;
             context.__actions.push(timestamp);
             var returnObj = {};
+            var data;
+
+            if(!(key instanceof KeyRange)){
+                key = KeyRange.only(key);
+            }
 
             if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
                 error(context, returnObj, { name: "InvalidStateError" });
             }
 
-            if(!isValidKey(key)) {
-                error(context, returnObj, { name: "DataError" });
+            if(key.upper === key.lower){
+                data = context.__data[key.lower]; 
             }
-
-            var data = context.__data[key]; 
+            else{
+                var keysSorted = this.__keys.sort(); // todo extend with all types of keys
+                for (var i = 0; i < keysSorted.length; i++) {
+                    if(key.inRange(keysSorted[i])){
+                        data = context.__data[keysSorted[i]];
+                        continue;
+                    }
+                }
+            }
 
             setTimeout(function () {
                 if (typeof returnObj.onsuccess === 'function') {
@@ -712,6 +725,10 @@
                 }
             }
 
+            if(noOverWrite && !context.__data[internalKey])
+            {
+                context.__keys.push(internalKey);
+            }
             // set objectstore data
             context.__data[internalKey] = data;
 
@@ -865,6 +882,18 @@
 
         return new KeyRange(lower, upper, lowerOpen ? lowerOpen : false, upperOpen ? upperOpen : false);
     };
+
+    KeyRange.prototype = function(){
+        function inRange(key){
+            if((!this.lower || key < this.lower || key === this.lower && !lowerOpen) && (!this.upper || key > this.upper || key === this.upper && !this.upperOpen)){
+                return true;
+            }
+            return false;
+        }
+        return {
+            inRange: inRange
+        };
+    }();
 
 
     function isValidKey(key){
