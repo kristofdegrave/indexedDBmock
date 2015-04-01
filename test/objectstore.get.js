@@ -157,11 +157,62 @@ QUnit.test("Retrieving data - internal key", function (assert) {
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range", function (assert) {
+QUnit.test("Retrieving data - key range lowerBound exclusieve", function (assert) {
     var done = assert.async();
     assert.expect(1);
 
-    initionalSituationObjectStoreNoAutoIncrementWithData(function () {
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.get(KeyRange.lowerBound(5, true));
+                    getRequest.onsuccess = function (e){
+                        deepEqual(e.target.result, addData6, "Data");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.ok(false, "Get error");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Retrieving data - key range lowerBound inclusieve", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
         request.onsuccess = function(e){
             try{
@@ -171,7 +222,160 @@ QUnit.test("Retrieving data - key range", function (assert) {
                 try{
                     var getRequest = objectstore.get(KeyRange.lowerBound(5));
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData, "Data");
+                        deepEqual(e.target.result, addData5, "Data");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.ok(false, "Get error");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Retrieving data - key range upperBound", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.get(KeyRange.upperBound(5));
+                    getRequest.onsuccess = function (e){
+                        deepEqual(e.target.result, addData, "No data Data");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.ok(false, "Get error");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Retrieving data - key range upperBound exclusieve", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.get(KeyRange.upperBound(1, true));
+                    getRequest.onsuccess = function (e){
+                        deepEqual(e.target.result, undefined, "No data Data");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.ok(false, "Get error");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.get(KeyRange.upperBound(1, false));
+                    getRequest.onsuccess = function (e){
+                        deepEqual(e.target.result, addData, "No data Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
