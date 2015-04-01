@@ -244,7 +244,8 @@
 
             this.objectStore = objectStore;
             this.__data = {};
-        }, KeyRange = function(lower, upper, lowerOpen, upperOpen){
+        }, 
+        KeyRange = function(lower, upper, lowerOpen, upperOpen){
             this.lower = lower;
             this.upper = upper;
             this.lowerOpen = lowerOpen ? lowerOpen : false;
@@ -915,6 +916,8 @@
     function sortKey(item1,item2){
         if(typeof item1 === 'number' && typeof item2 === 'number' || typeof item1 === 'string' && typeof item2 === 'string' || item1 instanceof Date && item2 instanceof Date || item1 instanceof Array && item2 instanceof Array){
             if(item1 instanceof Array && item2 instanceof Array){
+                item1 = item1.sort(sortKey);
+                item2 = item2.sort(sortKey);
                 var length = item1.length < item2.length ? item1.length : item2.length;
                 for (var i = 0; i < length; i++) {
                     if ( item1[i] < item2[i] ){

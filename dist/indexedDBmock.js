@@ -534,11 +534,11 @@
                 data = context.__data[key.lower]; 
             }
             else{
-                var keysSorted = this.__keys.sort(); // todo extend with all types of keys
+                var keysSorted = this.__keys.sort(sortKey); // todo extend with all types of keys
                 for (var i = 0; i < keysSorted.length; i++) {
                     if(key.inRange(keysSorted[i])){
                         data = context.__data[keysSorted[i]];
-                        continue;
+                        break;
                     }
                 }
             }
@@ -704,7 +704,7 @@
                 if(idx.multiEntry && idxKey instanceof Array){
                     var kys = {};
                     for (var m = 0; m < idxKey.length; m++) {
-                        if(isValidKey(idxKey[m]) && !kys[idxKey[m]]){
+                        if(typeof idxKey[m] === 'number' && !kys[idxKey[m]]){
                             kys[idxKey[m]] = idxKey[m];
                             if(!idx.__data[idxKey[m]]){
                                 idx.__data[idxKey[m]] = [];
@@ -885,7 +885,7 @@
 
     KeyRange.prototype = function(){
         function inRange(key){
-            if((!this.lower || key < this.lower || key === this.lower && !lowerOpen) && (!this.upper || key > this.upper || key === this.upper && !this.upperOpen)){
+            if((!this.lower || key > this.lower || key === this.lower && !this.lowerOpen) && (!this.upper || key < this.upper || key === this.upper && !this.upperOpen)){
                 return true;
             }
             return false;
@@ -910,6 +910,58 @@
             return true;
         }
         return false;
+    }
+
+    function sortKey(item1,item2){
+        if(typeof item1 === 'number' && typeof item2 === 'number' || typeof item1 === 'string' && typeof item2 === 'string' || item1 instanceof Date && item2 instanceof Date || item1 instanceof Array && item2 instanceof Array){
+            if(item1 instanceof Array && item2 instanceof Array){
+                item1 = item1.sort(sortKey);
+                item2 = item2.sort(sortKey);
+                var length = item1.length < item2.length ? item1.length : item2.length;
+                for (var i = 0; i < length; i++) {
+                    if ( item1[i] < item2[i] ){
+                      return -1;
+                    } 
+                    if ( item1[i] > item2[i] ){
+                      return 1;
+                    }
+                }
+                if (item1.length < item2.length){
+                    return -1;
+                }
+                if (item1.length > item2.length){
+                    return 1;
+                }
+                return 0;
+            }
+            else{
+                if ( item1 < item2 ){
+                  return -1;
+                } 
+                if ( item1 > item2 ){
+                  return 1;
+                }
+                return 0; 
+            }       
+        }
+        else if(item1 instanceof Array){
+            return 1;
+        }
+        else if(item2 instanceof Array){
+            return -1;
+        }
+        else if(typeof item1 === 'string'){
+            return 1;
+        }
+        else if(typeof item2 === 'string'){
+            return -1;
+        }
+        else if(item1 instanceof Date){
+            return 1;
+        }
+        else{
+            return -1;
+        }
     }
 
     global.indexedDBmock = indexeddb;
