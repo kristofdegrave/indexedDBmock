@@ -18,7 +18,7 @@ QUnit.test("Retrieving data - no data present for key", function (assert) {
                 try{
                     var getRequest = objectstore.get(key);
                     getRequest.onsuccess = function (e){
-                        equal(e.target.result, undefined, "Data undefined");
+                        assert.equal(e.target.result, undefined, "Data undefined");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -33,7 +33,7 @@ QUnit.test("Retrieving data - no data present for key", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -69,7 +69,7 @@ QUnit.test("Retrieving data - external key", function (assert) {
                 try{
                     var getRequest = objectstore.get(addData.id);
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData, "Data undefined");
+                        assert.deepEqual(e.target.result, addData, "Data undefined");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -84,7 +84,7 @@ QUnit.test("Retrieving data - external key", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -120,7 +120,7 @@ QUnit.test("Retrieving data - internal key", function (assert) {
                 try{
                     var getRequest = objectstore.get(addData.id);
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData, "Data undefined");
+                        assert.deepEqual(e.target.result, addData, "Data undefined");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -135,7 +135,7 @@ QUnit.test("Retrieving data - internal key", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -171,7 +171,7 @@ QUnit.test("Retrieving data - key range lowerBound exclusieve", function (assert
                 try{
                     var getRequest = objectstore.get(KeyRange.lowerBound(5, true));
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData6, "Data");
+                        assert.deepEqual(e.target.result, addData6, "Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -186,7 +186,7 @@ QUnit.test("Retrieving data - key range lowerBound exclusieve", function (assert
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -222,7 +222,7 @@ QUnit.test("Retrieving data - key range lowerBound inclusieve", function (assert
                 try{
                     var getRequest = objectstore.get(KeyRange.lowerBound(5));
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData5, "Data");
+                        assert.deepEqual(e.target.result, addData5, "Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -237,7 +237,7 @@ QUnit.test("Retrieving data - key range lowerBound inclusieve", function (assert
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -273,7 +273,7 @@ QUnit.test("Retrieving data - key range upperBound", function (assert) {
                 try{
                     var getRequest = objectstore.get(KeyRange.upperBound(5));
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData, "No data Data");
+                        assert.deepEqual(e.target.result, addData, "No data Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -288,7 +288,7 @@ QUnit.test("Retrieving data - key range upperBound", function (assert) {
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -324,7 +324,7 @@ QUnit.test("Retrieving data - key range upperBound exclusieve", function (assert
                 try{
                     var getRequest = objectstore.get(KeyRange.upperBound(1, true));
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, undefined, "No data Data");
+                        assert.deepEqual(e.target.result, undefined, "No data Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -339,7 +339,7 @@ QUnit.test("Retrieving data - key range upperBound exclusieve", function (assert
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };
@@ -375,7 +375,7 @@ QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert
                 try{
                     var getRequest = objectstore.get(KeyRange.upperBound(1, false));
                     getRequest.onsuccess = function (e){
-                        deepEqual(e.target.result, addData, "No data Data");
+                        assert.deepEqual(e.target.result, addData, "No data Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
@@ -390,7 +390,7 @@ QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert
                     done();
                 };
                 transaction.onabort = function (err){
-                    equal(err.error.name, "AbortError", "AbortError");
+                    assert.equal(err.error.name, "AbortError", "AbortError");
                     e.target.result.close();
                     done();
                 };

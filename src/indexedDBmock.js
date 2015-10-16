@@ -289,6 +289,9 @@
                 };
             }
 
+
+            // TODO: Check valid key path?
+            
             if(parameters && parameters.keyPath instanceof Array)
             {
                 for (var i = 0; i < parameters.keyPath.length; i++){
@@ -762,6 +765,8 @@
             }
 
             // TODO: Import existing data in the object store
+
+            // TODO: Check valid key path?
 
             var index = new Index(name, keyPath, parameters, this);
             this._indexes.push(index);
