@@ -182,5 +182,36 @@ QUnit.test("Deleting non existing Database", function (assert) {
     }, done, assert);
 });
 /* TODO add tests for version change event */
+QUnit.test("Opening Database with open database in lower version.", function (assert) {
+    var done = assert.async();
+    var version = 2;
+    assert.expect(3);
+
+    initionalSituation(function(){
+        var request = indexedDb.open(dbName, version);
+
+        request.onsuccess = function(e){
+            e.target.result.onversionchange = function(args){
+                assert.equal("versionchange", args.type, "Versionchange database");
+                assert.equal(args.oldVersion, version, "Old version");
+                assert.equal(args.newVersion, version + 1, "New version");
+                e.target.result.close();
+            }
+            var request2 = indexedDb.open(dbName, version+1);
+            request2.onsuccess = function(args){
+                args.target.result.close();
+                done();
+            };
+
+        };
+        request.onerror = function(){
+            assert.ok(false, "Creating database failed");
+            done();
+        };
+        request.onupgradeneeded = function(e){
+        };
+
+    }, done, assert);
+});
 
 

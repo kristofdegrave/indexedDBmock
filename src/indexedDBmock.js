@@ -45,6 +45,14 @@
                 else {
                     if (version && connection.version < version) {
                         setTimeout(function () {
+                            for (var i = 0; i < db.connections.length; i++) {
+                                if (db.connections[i]._connectionId !== connection._connectionId) {
+                                    if (typeof db.connections[i].onversionchange === 'function') {
+                                        db.connections[i].onversionchange(new VersionChangeEvent(db.connections[i], version, db.connections[i].version));
+                                    }
+                                }
+                            }
+
                             returnObj.target = returnObj;
                             returnObj.target.readyState = "done";
                             returnObj.target.type = "upgradeneeded";
@@ -84,19 +92,6 @@
                                     db.connections.push(connection);
 
                                     returnObj.onsuccess(returnObj);
-                                }
-
-                                for (var i = 0; i < db.connections.length; i++) {
-                                    if (db.connections[i]._connectionId !== connection._connectionId) {
-                                        if (typeof db.connections[i].onversionchange === 'function') {
-                                            db.connections[i].target = db.connections[i];
-                                            db.connections[i].target.readyState = "done";
-                                            db.connections[i].target.type = TransactionTypes.VERSIONCHANGE;
-                                            db.connections[i].target.version = version;
-
-                                            db.connections[i].onversionchange(db.connections[i]);
-                                        }
-                                    }
                                 }
                             }, timeout);
                         }, timeout);
@@ -250,7 +245,49 @@
             this.upper = upper;
             this.lowerOpen = lowerOpen ? lowerOpen : false;
             this.upperOpen = upperOpen ? upperOpen : false;
+        },
+        IEvent = function(type, config){
+            this.CAPTURING_PHASE = 1;
+            this.AT_TARGET = 2;
+            this.BUBBLING_PHASE = 3;
+
+            this.bubbles = config.bubbles || false;
+            this.cancelBubble = (config.bubbles && config.cancelable) || false;
+            this.cancelable = config.cancelable || false;
+            this.currentTarget = config.target;
+            this.defaultPrevented = false;
+            this.detail = undefined;
+            this.eventPhase = this.AT_TARGET;
+            this.path = undefined;
+            this.returnValue = undefined;
+            this.srcElement = config.target;
+            this.target = config.target;
+            this.timestamp = global.Date.now();
+            this.type = type;
+        },
+        VersionChangeEvent = function(target, newVersion, oldVersion){
+            IEvent.call(this, "versionchange", {target: target});
+
+            this.newVersion = newVersion;
+            this.oldVersion = oldVersion;
+        }
+
+    IEvent.prototype = (function(){
+        function preventDefault(){
+            this.defaultPrevented = true;
+        }
+        function stopImmediatePropagation(){
+            this.cancelBubble = true;
+        }
+
+        return {
+            preventDefault: preventDefault,
+            stopImmediatePropagation: stopImmediatePropagation
         };
+    })();
+
+    VersionChangeEvent.prototype = IEvent.prototype;
+
 
     Connection.prototype = function () {
         function close() {
