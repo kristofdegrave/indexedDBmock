@@ -55,7 +55,7 @@
                             function upgrade(returnObj, connection, db, version) {
                                 if(db.connections.length > 0 && db.connections[0]._connectionId !== connection._connectionId){
                                     if (typeof returnObj.onblocked === 'function') {
-                                        returnObj.onblocked(new IVersionChangeEvent("blocked", {target: db.connections[i], newVersion: null, oldVersion: connection.version}))
+                                        returnObj.onblocked(new IVersionChangeEvent("blocked", {target: db.connections[i], newVersion: null, oldVersion: connection.version}));
                                     }
                                     setTimeout(upgrade, 10, returnObj, connection, db, version);
                                 }
@@ -280,7 +280,7 @@
 
             this.newVersion = versionChangeInit.newVersion;
             this.oldVersion = versionChangeInit.oldVersion;
-        }
+        };
 
     IEvent.prototype = (function(){
         function preventDefault(){

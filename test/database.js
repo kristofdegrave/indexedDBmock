@@ -217,7 +217,7 @@ QUnit.test("Opening database with higher version while open database connection 
                 assert.equal(args.oldVersion, version, "Old version");
                 assert.equal(args.newVersion, version + 1, "New version");
                 e.target.result.close();
-            }
+            };
             var request2 = indexedDb.open(dbName, version+1);
             request2.onsuccess = function(args){
                 e.target.result.close();
@@ -247,7 +247,7 @@ QUnit.test("Block opening database with higher version.", function (assert) {
         request.onsuccess = function(e){
             e.target.result.onversionchange = function(args){
                 assert.equal("versionchange", args.type, "Versionchange database");
-            }
+            };
             var request2 = indexedDb.open(dbName, version+1);
             request2.onsuccess = function(args){
                 args.target.result.close();
