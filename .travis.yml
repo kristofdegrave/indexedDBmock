@@ -9,7 +9,7 @@ before_deploy:
  - git config --global user.name "Travis CI"
  - export GIT_TAG=$TRAVIS_BRANCH-0.1.$TRAVIS_BUILD_NUMBER
  - git tag $GIT_TAG -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER"
- - git push https://github.com/kristofdegrave/indexedDBmock.git --tag
+ - git push https://LifWcMvVdfecAE8MwECByqgoJZzjzlbO+0TedFZZ/zP+llfE024QAWluSpL6VrZTvqiAgPUj1M7H2YhxIGfoecnBZSHR+65BMDABFkQ/5Q+yH12iRDLK9bvjr+ToXSe7ia/MAtr08Ma9Z4yCNIOrnb003Liupq/NgNWJL+KQeQk=@github.com/kristofdegrave/indexedDBmock.git --tag
 deploy:
   provider: releases
   api_key:
