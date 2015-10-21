@@ -17,6 +17,5 @@ deploy:
   skip_cleanup: true
 
   on:
-    repo: kristofdegrave/indexedDBmock
     tag: false
     all_branches: true
