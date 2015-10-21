@@ -1,6 +1,6 @@
 {
   "name": "indexedDBmock",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This indexedDBmock allows you to mock your indexedDB for testing",
   "main": "index.js",
   "scripts": {
