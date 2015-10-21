@@ -45,22 +45,40 @@
                 else {
                     if (version && connection.version < version) {
                         setTimeout(function () {
-                            returnObj.target = returnObj;
-                            returnObj.target.readyState = "done";
-                            returnObj.target.type = "upgradeneeded";
-                            returnObj.target.newVersion = version;
-                            returnObj.target.oldVersion = connection.version;
-                            returnObj.target.transaction = new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection));
-
-                            // Upgrade version
-                            returnObj.target.transaction.db.version = version;
-                            connection.version = version;
-                            db.version = version;
-
-                            if (typeof returnObj.onupgradeneeded === 'function') {
-                                returnObj.onupgradeneeded(returnObj);
-                                returnObj.target.transaction.__commit();
+                            for (var i = 0; i < db.connections.length; i++) {
+                                if (db.connections[i]._connectionId !== connection._connectionId) {
+                                    if (typeof db.connections[i].onversionchange === 'function') {
+                                        db.connections[i].onversionchange(new IVersionChangeEvent("versionchange", {target: db.connections[i], newVersion: version, oldVersion: db.connections[i].version}));
+                                    }
+                                }
                             }
+                            function upgrade(returnObj, connection, db, version) {
+                                if(db.connections.length > 0 && db.connections[0]._connectionId !== connection._connectionId){
+                                    if (typeof returnObj.onblocked === 'function') {
+                                        returnObj.onblocked(new IVersionChangeEvent("blocked", {target: db.connections[i], newVersion: null, oldVersion: connection.version}));
+                                    }
+                                    setTimeout(upgrade, 10, returnObj, connection, db, version);
+                                }
+
+                                returnObj.target = returnObj;
+                                returnObj.target.readyState = "done";
+                                returnObj.target.type = "upgradeneeded";
+                                returnObj.target.newVersion = version;
+                                returnObj.target.oldVersion = connection.version;
+                                returnObj.target.transaction = new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection));
+
+                                // Upgrade version
+                                returnObj.target.transaction.db.version = version;
+                                connection.version = version;
+                                db.version = version;
+
+                                if (typeof returnObj.onupgradeneeded === 'function') {
+                                    returnObj.onupgradeneeded(returnObj);
+                                    returnObj.target.transaction.__commit();
+                                }
+                            }
+
+                            upgrade(returnObj, connection, db, version);
 
                             setTimeout(function () {
                                 if(returnObj.target.transaction._aborted) {
@@ -84,19 +102,6 @@
                                     db.connections.push(connection);
 
                                     returnObj.onsuccess(returnObj);
-                                }
-
-                                for (var i = 0; i < db.connections.length; i++) {
-                                    if (db.connections[i]._connectionId !== connection._connectionId) {
-                                        if (typeof db.connections[i].onversionchange === 'function') {
-                                            db.connections[i].target = db.connections[i];
-                                            db.connections[i].target.readyState = "done";
-                                            db.connections[i].target.type = TransactionTypes.VERSIONCHANGE;
-                                            db.connections[i].target.version = version;
-
-                                            db.connections[i].onversionchange(db.connections[i]);
-                                        }
-                                    }
                                 }
                             }, timeout);
                         }, timeout);
@@ -244,17 +249,60 @@
 
             this.objectStore = objectStore;
             this.__data = {};
-        }, KeyRange = function(lower, upper, lowerOpen, upperOpen){
+        }, 
+        KeyRange = function(lower, upper, lowerOpen, upperOpen){
             this.lower = lower;
             this.upper = upper;
             this.lowerOpen = lowerOpen ? lowerOpen : false;
             this.upperOpen = upperOpen ? upperOpen : false;
+        },
+        IEvent = function(type, config){
+            this.CAPTURING_PHASE = 1;
+            this.AT_TARGET = 2;
+            this.BUBBLING_PHASE = 3;
+
+            this.bubbles = config.bubbles || false;
+            this.cancelBubble = (config.bubbles && config.cancelable) || false;
+            this.cancelable = config.cancelable || false;
+            this.currentTarget = config.target;
+            this.defaultPrevented = false;
+            this.detail = undefined;
+            this.eventPhase = this.AT_TARGET;
+            this.path = undefined;
+            this.returnValue = undefined;
+            this.srcElement = config.target;
+            this.target = config.target;
+            this.timestamp = global.Date.now();
+            this.type = type;
+        },
+        IVersionChangeEvent = function(type, versionChangeInit){
+            IEvent.call(this, type, {target: versionChangeInit.target});
+
+            this.newVersion = versionChangeInit.newVersion;
+            this.oldVersion = versionChangeInit.oldVersion;
         };
+
+    IEvent.prototype = (function(){
+        function preventDefault(){
+            this.defaultPrevented = true;
+        }
+        function stopImmediatePropagation(){
+            this.cancelBubble = true;
+        }
+
+        return {
+            preventDefault: preventDefault,
+            stopImmediatePropagation: stopImmediatePropagation
+        };
+    })();
+
+    IVersionChangeEvent.prototype = IEvent.prototype;
+
 
     Connection.prototype = function () {
         function close() {
             for (var i = 0; i < this._db.connections.length; i++) {
-                if (this._db.connections[i].connectionId === this._connectionId) {
+                if (this._db.connections[i]._connectionId === this._connectionId) {
                     this._db.connections.splice(i, 1);
                 }
             }
@@ -288,6 +336,9 @@
                 };
             }
 
+
+            // TODO: Check valid key path?
+            
             if(parameters && parameters.keyPath instanceof Array)
             {
                 for (var i = 0; i < parameters.keyPath.length; i++){
@@ -761,6 +812,8 @@
             }
 
             // TODO: Import existing data in the object store
+
+            // TODO: Check valid key path?
 
             var index = new Index(name, keyPath, parameters, this);
             this._indexes.push(index);
