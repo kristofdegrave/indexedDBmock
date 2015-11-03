@@ -8,7 +8,7 @@
         indexeddb = {
             open: function (name, version) {
                 var db,
-                    returnObj = {};
+                    openDBRequest = new Request(null, null);
                 for(var database in dbs)
                 {
                     if(database === name)
@@ -31,15 +31,10 @@
 
                 if(version && connection.version > version){
                     setTimeout(function(){
-                        if(typeof returnObj.onerror === 'function'){
-                            returnObj.target = returnObj;
-                            returnObj.target.errorCode = "VersionError";
-                            returnObj.target.error = {
-                                name: "VersionError"
-                            };
-                            returnObj.target.readyState = "done";
-                            returnObj.onerror(returnObj);
-                        }
+                        openDBRequest.__error({
+                            name: "VersionError",
+                            message: "You are trying to open the database in a lower version (" + version + ") than the current version of the database"
+                        }, "VersionError");
                     }, timeout);
                 }
                 else {
@@ -53,77 +48,48 @@
                                 }
                             }
                             function upgrade(returnObj, connection, db, version) {
+                                var currentVersion = connection.version;
                                 if(db.connections.length > 0 && db.connections[0]._connectionId !== connection._connectionId){
-                                    if (typeof returnObj.onblocked === 'function') {
-                                        returnObj.onblocked(new IVersionChangeEvent("blocked", {target: db.connections[i], newVersion: null, oldVersion: connection.version}));
-                                    }
+                                    openDBRequest.__blocked(null, connection.version);
                                     setTimeout(upgrade, 10, returnObj, connection, db, version);
                                 }
 
-                                returnObj.target = returnObj;
-                                returnObj.target.readyState = "done";
-                                returnObj.target.type = "upgradeneeded";
-                                returnObj.target.newVersion = version;
-                                returnObj.target.oldVersion = connection.version;
-                                returnObj.target.transaction = new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection));
-
-                                // Upgrade version
-                                returnObj.target.transaction.db.version = version;
                                 connection.version = version;
                                 db.version = version;
 
-                                if (typeof returnObj.onupgradeneeded === 'function') {
-                                    returnObj.onupgradeneeded(returnObj);
-                                    returnObj.target.transaction.__commit();
-                                }
+                                openDBRequest.__upgradeneeded(connection
+                                                            , new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection))
+                                                            , version
+                                                            , currentVersion);
                             }
 
-                            upgrade(returnObj, connection, db, version);
+                            upgrade(openDBRequest, connection, db, version);
 
                             setTimeout(function () {
-                                if(returnObj.target.transaction._aborted) {
-                                    if (typeof returnObj.onerror === 'function') {
-                                        returnObj.target = returnObj;
-                                        returnObj.target.errorCode = 8;
-                                        returnObj.target.error = {
-                                            name: "AbortError",
-                                            message: "The transaction was aborted."
-                                        };
-                                        returnObj.target.readyState = "done";
-
-                                        returnObj.onerror(returnObj);
-                                    }
+                                if(openDBRequest.transaction._aborted) {
+                                    openDBRequest.__error({
+                                        name: "AbortError",
+                                        message: "The transaction was aborted."
+                                    }, 8);
                                 }
-                                else if (typeof returnObj.onsuccess === 'function') {
-                                    returnObj.target = returnObj;
-                                    returnObj.target.result = connection;
-                                    returnObj.target.readyState = "done";
-
+                                else {
                                     db.connections.push(connection);
-
-                                    returnObj.onsuccess(returnObj);
+                                    openDBRequest.__success(connection);
                                 }
                             }, timeout);
                         }, timeout);
                     }
                     else {
                         setTimeout(function () {
-                            if (typeof returnObj.onsuccess === 'function') {
-                                returnObj.target = returnObj;
-                                returnObj.target.result = connection;
-                                returnObj.target.readyState = "done";
-
-                                db.connections.push(connection);
-
-                                returnObj.onsuccess(returnObj);
-                            }
+                            db.connections.push(connection);
+                            openDBRequest.__success(connection);
                         }, timeout);
                     }
                 }
-                return returnObj;
+                return openDBRequest;
             },
             deleteDatabase: function(name){
-                var returnObj = {};
+                var openDBRequest = new Request(null, null);
                 for(var database in dbs)
                 {
                     if(database === name)
@@ -134,15 +100,10 @@
                 }
 
                 setTimeout(function(){
-                    if(typeof returnObj.onsuccess === 'function'){
-                        returnObj.target = returnObj;
-                        returnObj.target.readyState = "done";
-
-                        returnObj.onsuccess(returnObj);
-                    }
+                    openDBRequest.__success();
                 }, timeout);
 
-                return returnObj;
+                return openDBRequest;
             },
             cmp: function(first, second) {
 
@@ -152,6 +113,10 @@
             READONLY: "readonly",
             READWRITE: "readwrite",
             VERSIONCHANGE: "versionchange"
+        },
+        DBRequestReadyState = {
+            "pending": "pending",
+            "done": "done"
         },
         Database = function(name){
             this.name = name;
@@ -269,17 +234,32 @@
             this.detail = undefined;
             this.eventPhase = this.AT_TARGET;
             this.path = undefined;
-            this.returnValue = undefined;
+            this.returnValue = config.returnValue;
             this.srcElement = config.target;
             this.target = config.target;
             this.timestamp = global.Date.now();
             this.type = type;
         },
         IVersionChangeEvent = function(type, versionChangeInit){
-            IEvent.call(this, type, {target: versionChangeInit.target});
+            IEvent.call(this, type, versionChangeInit);
 
             this.newVersion = versionChangeInit.newVersion;
             this.oldVersion = versionChangeInit.oldVersion;
+        }
+        ISuccessEvent = function(request){
+            IEvent.call(this, "success", {target: request, returnValue: true});
+        },
+        IErrorEvent = function(request){
+                IEvent.call(this, "error", {target: request, returnValue: true});
+            },
+        Request = function(source, transaction){
+            this.error = undefined;
+            this.result = undefined;
+            this.source = source;
+            this.transaction = transaction;
+            this.readyState = DBRequestReadyState.pending;
+            this.onsuccess = null;
+            this.onerror = null;
         };
 
     IEvent.prototype = (function(){
@@ -570,7 +550,7 @@
             var timestamp = (new Date()).getTime();
             var context = this;
             context.__actions.push(timestamp);
-            var returnObj = {};
+            var returnObj = new Request(this, this.transaction);
             var data;
 
             if(!(key instanceof KeyRange)){
@@ -596,9 +576,8 @@
 
             setTimeout(function () {
                 if (typeof returnObj.onsuccess === 'function') {
-                    returnObj.target = returnObj;
-                    returnObj.target.result = data;
-                    returnObj.target.readyState = "done";
+                    returnObj.result = data;
+                    returnObj.readyState = DBRequestReadyState.done;
 
                     returnObj.onsuccess(returnObj);
                 }
@@ -946,6 +925,53 @@
         return {
             inRange: inRange
         };
+    }();
+
+    Request.prototype = function () {
+        function error(error, code){
+            this.error = error;
+            this.errorCode = code;
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onerror === 'function') {
+                this.onerror(new IErrorEvent(this));
+            }
+        }
+
+        function success(result){
+            this.result = result;
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onsuccess === 'function') {
+                this.onsuccess(new ISuccessEvent(this));
+            }
+        }
+
+        function blocked(newVersion, oldVersion){
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onblocked === 'function') {
+                this.onblocked(new IVersionChangeEvent("blocked", {target: this, newVersion: null, oldVersion: oldVersion}));
+            }
+        }
+
+        function upgradeneeded(result, transaction, newVersion, oldVersion){
+            this.result = result;
+            this.transaction = transaction;
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onupgradeneeded === 'function') {
+                this.onupgradeneeded(new IVersionChangeEvent("upgradeneeded", {target: this, newVersion: newVersion, oldVersion: oldVersion, returnValue: true}));
+                transaction.__commit;
+            }
+        }
+        return {
+            __error: error,
+            __success: success,
+            // TODO Refactor in seperate object
+            __blocked: blocked,
+            __upgradeneeded: upgradeneeded
+        }
     }();
 
 

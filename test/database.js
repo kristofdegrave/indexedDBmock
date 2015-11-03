@@ -202,7 +202,6 @@ QUnit.test("Deleting non existing Database", function (assert) {
         };
     }, done, assert);
 });
-/* TODO add tests for version change event */
 QUnit.test("Opening database with higher version while open database connection exist.", function (assert) {
     var done = assert.async();
     var version = 2;

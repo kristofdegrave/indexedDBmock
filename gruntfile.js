@@ -99,7 +99,7 @@ module.exports = function(grunt) {
     grunt.registerTask('default', ['jshint', 'bower', 'qunit', 'concat', 'uglify']);
 
     grunt.registerTask('publish', ['publish:patch']);
-    grunt.registerTask('publish:patch', ['clean', 'bump:patch', 'release', 'nugetpack', 'nugetpush']);
-    grunt.registerTask('publish:minor', ['clean', 'bump:minor', 'release', 'nugetpack', 'nugetpush']);
-    grunt.registerTask('publish:major', ['clean', 'bump:major', 'release', 'nugetpack', 'nugetpush']);
+    grunt.registerTask('publish:patch', ['bump:patch', 'release', 'nugetpack', 'nugetpush']);
+    grunt.registerTask('publish:minor', ['bump:minor', 'release', 'nugetpack', 'nugetpush']);
+    grunt.registerTask('publish:major', ['bump:major', 'release', 'nugetpack', 'nugetpush']);
 };
