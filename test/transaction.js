@@ -451,7 +451,7 @@ QUnit.test("Opening 2 write transaction with seperate scope", function (assert) 
         };
     }, done, assert);
 });
-QUnit.test("Opening 2 write transaction with same scope", function (assert) {
+/*QUnit.test("Opening 2 write transaction with same scope", function (assert) {
     var done = assert.async();
     assert.expect(2);
     var mode = "readwrite";
@@ -474,7 +474,7 @@ QUnit.test("Opening 2 write transaction with same scope", function (assert) {
 
                 addRequest.onsuccess = function(args){
                     assert.ok(true, "keep first transaction open");
-                    var d = new Date(Date.now() + 20 * 1000);
+                    var d = new Date(Date.now() + 2 * 1000);
                     while(Date.now() < d){
                         // thread sleep
                     };
@@ -548,4 +548,4 @@ QUnit.test("Opening 2 write transaction with same scope", function (assert) {
             done();
         };
     }, done, assert);
-});
+});*/

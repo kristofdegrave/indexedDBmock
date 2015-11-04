@@ -47,11 +47,11 @@
                                     }
                                 }
                             }
-                            function upgrade(returnObj, connection, db, version) {
+                            function upgrade(request, connection, db, version) {
                                 var currentVersion = connection.version;
                                 if(db.connections.length > 0 && db.connections[0]._connectionId !== connection._connectionId){
                                     openDBRequest.__blocked(null, connection.version);
-                                    setTimeout(upgrade, 10, returnObj, connection, db, version);
+                                    setTimeout(upgrade, 10, request, connection, db, version);
                                 }
 
                                 connection.version = version;
@@ -186,6 +186,11 @@
                 }
             }
 
+            this.oncomplete = undefined;
+            this.onerror = undefined;
+            this.onabort = undefined;
+
+            this.error = null;
             this.mode = mode;
             this.objectStoreNames = objectStoreNames;
             this.db.transaction = this;
@@ -249,6 +254,12 @@
         ISuccessEvent = function(request){
             IEvent.call(this, "success", {target: request, returnValue: true});
         },
+        ICompleteEvent = function(transaction){
+            IEvent.call(this, "complete", {target: transaction, returnValue: true});
+        },
+        IAbortEvent = function(transaction){
+            IEvent.call(this, "abort", {target: transaction, returnValue: true});
+        },
         IErrorEvent = function(request){
                 IEvent.call(this, "error", {target: request, returnValue: true});
             },
@@ -277,7 +288,6 @@
     })();
 
     IVersionChangeEvent.prototype = IEvent.prototype;
-
 
     Connection.prototype = function () {
         function close() {
@@ -315,7 +325,6 @@
                     name: "InvalidStateError"
                 };
             }
-
 
             // TODO: Check valid key path?
             
@@ -397,37 +406,19 @@
                 }
                 context.__active = false;
 
-                if (typeof context.oncomplete === 'function') {
-                    context.target = context;
-                    context.target.result = context;
-                    context.target.readyState = "done";
-
-                    context.oncomplete(context);
-                }
+                context.__complete();
             }
         }
 
-        function abort(err) {
+        function abort(error) {
             this._aborted = true;
 
-            if(!err){
-                err = {
-                    name: "AbortError",
-                    message: "The transaction was aborted."
-                };
-            }
-
-            var trans = this;
-
-            setTimeout(function() {
-                if (typeof trans.onabort === 'function') {
-                    trans.target = trans;
-                    trans.target.errorCode = 8;
-                    trans.target.error = err;
-                    trans.target.readyState = "done";
-                    trans.onabort(trans);
+            setTimeout(function(tx) {
+                this.error = error
+                if (typeof tx.onabort === 'function') {
+                    tx.onabort(new IAbortEvent(this));
                 }
-            }, timeout);
+            }, timeout, this);
         }
 
         function objectStore(name) {
@@ -488,11 +479,28 @@
             }, timeout);
         }
 
+        function error(error, code){
+            this.error = error;
+            this.errorCode = code;
+
+            if (typeof this.onerror === 'function') {
+                this.onerror(new IErrorEvent(this));
+            }
+        }
+
+        function complete(){
+            if (typeof this.oncomplete === 'function') {
+                this.oncomplete(new ICompleteEvent(this));
+            }
+        }
+
         return {
             abort: abort,
             objectStore: objectStore,
             __commit: commit,
-            __checkFinished: checkFinished
+            __checkFinished: checkFinished,
+            __complete: complete,
+            __error: error
         };
     }();
 
@@ -550,7 +558,7 @@
             var timestamp = (new Date()).getTime();
             var context = this;
             context.__actions.push(timestamp);
-            var returnObj = new Request(this, this.transaction);
+            var request = new Request(this, this.transaction);
             var data;
 
             if(!(key instanceof KeyRange)){
@@ -558,7 +566,10 @@
             }
 
             if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
-                error(context, returnObj, { name: "InvalidStateError" });
+                error(context, request, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
             }
 
             if(key.upper === key.lower){
@@ -575,16 +586,11 @@
             }
 
             setTimeout(function () {
-                if (typeof returnObj.onsuccess === 'function') {
-                    returnObj.result = data;
-                    returnObj.readyState = DBRequestReadyState.done;
-
-                    returnObj.onsuccess(returnObj);
-                }
+                request.__success(data);
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
             }, timeout);
 
-            return returnObj;
+            return request;
         }
         function put(data, key){
             return persist(this, data, key, false);
@@ -594,25 +600,9 @@
         } 
 
         function error(context, request, err){
-
             setTimeout(function () {
-                if (typeof request.onerror === 'function') {
-                    request.target = request;
-                    request.target.readyState = "done";
-                    request.target.error = err;
-
-                    request.onerror(request);
-                }
-
-                if (typeof context.transaction.onerror === 'function') {
-                    context.transaction.target = context.transaction;
-                    context.transaction.target.readyState = "done";
-                    context.transaction.target.error = err;
-
-                    context.transaction.onerror(context.transaction);
-                }
-
-
+                request.__error(err);
+                context.transaction.__error(err);
                 context.transaction.abort(err);
             }, timeout);
 
@@ -629,19 +619,28 @@
         function persist(context, data, key, noOverWrite){
             var timestamp = (new Date()).getTime();
             context.__actions.push(timestamp);
-            var returnObj = {};
+            var request = new Request(this, this.transaction);
             var internalKey = key;
 
             if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
-                exception(context, { name: "InvalidStateError" }, timestamp);
+                exception(context, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             if(context.transaction.mode == TransactionTypes.READONLY){
-                exception(context, { name: "ReadOnlyError" }, timestamp);
+                exception(context, {
+                    name: "ReadOnlyError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             if(!context.keyPath && !key && !context.autoIncrement || context.keyPath && (key || !data[context.keyPath] && !context.autoIncrement || !isObject(data))) {
-                exception(context, { name: "DataError" }, timestamp);
+                exception(context, {
+                    name: "DataError"
+                    // TODO Add message
+                }, timestamp);
             }
 
 			if(context.autoIncrement){
@@ -655,7 +654,10 @@
 				
 				if(internalKey > 9007199254740992)
 				{
-                    return error(context, returnObj, { name: "ConstraintError" });
+                    return error(context, request, {
+                        name: "ConstraintError"
+                        // TODO Add message
+                    });
 				}
 				
 				context.__latestKey = internalKey;
@@ -665,16 +667,25 @@
             }
 
             if(!isValidKey(internalKey)) {
-                exception(context, { name: "DataError" }, timestamp);
+                exception(context, {
+                    name: "DataError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             if(noOverWrite && context.__data[internalKey])
             {
-                return error(context, returnObj, { name: "ConstraintError" });
+                return error(context, request, {
+                    name: "ConstraintError"
+                    // TODO Add message
+                });
             }
 
             if(containsFunction(data)){
-                exception(context, { name: "DataCloneError" }, timestamp);
+                exception(context, {
+                    name: "DataCloneError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             // Check index constraints
@@ -693,7 +704,10 @@
                         if(isValidKey(indexKey[l]) && !keys[indexKey[l]]){
                             keys[indexKey[l]] = indexKey[l];
                             if(index.unique && index.__data[indexKey[l]]){
-                                return error(context, returnObj, { name: "ConstraintError" });
+                                return error(context, request, {
+                                    name: "ConstraintError"
+                                    // TODO Add message
+                                });
                             }
                         }
                     }
@@ -704,7 +718,10 @@
                         continue;
                     }
                     if(index.unique && index.__data[indexKey]){
-                        return error(context, returnObj, { name: "ConstraintError" });
+                        return error(context, request, {
+                            name: "ConstraintError"
+                            // TODO Add message
+                        });
                     }
                 }
             }
@@ -763,29 +780,29 @@
             context.__data[internalKey] = data;
 
             setTimeout(function () {
-                if (typeof returnObj.onsuccess === 'function') {
-                    returnObj.target = returnObj;
-                    returnObj.target.result = internalKey;
-                    returnObj.target.readyState = "done";
-
-                    returnObj.onsuccess(returnObj);
-                }
+                request.__success(internalKey);
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
             }, timeout);
 
-            return returnObj;
+            return request;
         }
 
         function createIndex(name, keyPath, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                exception(this, { name: "InvalidStateError" });
+                exception(this, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
             }
 
             if(keyPath && keyPath instanceof Array)
             {
                 for (var i = 0; i < keyPath.length; i++){
                     if(keyPath[i] === ""){
-                        exception(this, { name: "InvalidStateError" });
+                        exception(this, {
+                            name: "InvalidStateError"
+                            // TODO Add message
+                        });
                     }
                 }
             }
@@ -802,7 +819,10 @@
         }
         function deleteIndex(name, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                exception(this, { name: "InvalidStateError" });
+                exception(this, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
             }
 
             var indexFound = false;
@@ -817,7 +837,10 @@
 
             if(!indexFound)
             {
-                exception(this, { name: "NotFoundError" });
+                exception(this, {
+                    name: "NotFoundError"
+                    // TODO Add message
+                });
             }
 
             for(var j = 0; j < this._indexes.length; j++)
@@ -838,7 +861,10 @@
                 }
 
                 if (!indexFound) {
-                    exception(this, { name: "NotFoundError" });
+                    exception(this, {
+                        name: "NotFoundError"
+                        // TODO Add message
+                    });
                 }
             }
 
@@ -850,7 +876,10 @@
                 }
             }
 
-            exception(this, { name: "NotFoundError" });
+            exception(this, {
+                name: "NotFoundError"
+                // TODO Add message
+            });
         }
 
         function finished (){
@@ -882,6 +911,7 @@
         if(!isValidKey(value)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
         return new KeyRange(value, value, false, false);
@@ -891,6 +921,7 @@
         if(!isValidKey(lower)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
         return new KeyRange(lower, undefined, open ? open : false, true);
@@ -900,6 +931,7 @@
         if(!isValidKey(upper)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
         return new KeyRange(undefined, upper, true, open ? open : false);
@@ -909,6 +941,7 @@
         if(!isValidKey(lower) || !isValidKey(upper) || upper < lower || (upper === lower && !!upperOpen && !!lowerOpen)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
 
@@ -973,7 +1006,6 @@
             __upgradeneeded: upgradeneeded
         }
     }();
-
 
     function isValidKey(key){
         if(typeof key === 'number' && !isNaN(key) || typeof key === 'string' || key instanceof Date && !isNaN(key)){
