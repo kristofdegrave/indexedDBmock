@@ -250,7 +250,7 @@
 
             this.newVersion = versionChangeInit.newVersion;
             this.oldVersion = versionChangeInit.oldVersion;
-        }
+        },
         ISuccessEvent = function(request){
             IEvent.call(this, "success", {target: request, returnValue: true});
         },
@@ -288,6 +288,10 @@
     })();
 
     IVersionChangeEvent.prototype = IEvent.prototype;
+    ISuccessEvent.prototype = IEvent.prototype;
+    ICompleteEvent.prototype = IEvent.prototype;
+    IAbortEvent.prototype = IEvent.prototype;
+    IErrorEvent.prototype = IEvent.prototype;
 
     Connection.prototype = function () {
         function close() {
