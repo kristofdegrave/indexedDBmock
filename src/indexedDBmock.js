@@ -106,7 +106,55 @@
                 return openDBRequest;
             },
             cmp: function(first, second) {
-
+                if(typeof first === 'number' && typeof second === 'number' || typeof first === 'string' && typeof second === 'string' || first instanceof Date && second instanceof Date || first instanceof Array && second instanceof Array){
+                    if(first instanceof Array && second instanceof Array){
+                        first = first.sort(indexeddb.cmp);
+                        second = second.sort(indexeddb.cmp);
+                        var length = first.length < second.length ? first.length : second.length;
+                        for (var i = 0; i < length; i++) {
+                            if ( first[i] < second[i] ){
+                                return -1;
+                            }
+                            if ( first[i] > second[i] ){
+                                return 1;
+                            }
+                        }
+                        if (first.length < second.length){
+                            return -1;
+                        }
+                        if (first.length > second.length){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    else{
+                        if ( first < second ){
+                            return -1;
+                        }
+                        if ( first > second ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                }
+                else if(first instanceof Array){
+                    return 1;
+                }
+                else if(second instanceof Array){
+                    return -1;
+                }
+                else if(typeof first === 'string'){
+                    return 1;
+                }
+                else if(typeof second === 'string'){
+                    return -1;
+                }
+                else if(first instanceof Date){
+                    return 1;
+                }
+                else{
+                    return -1;
+                }
             }
         },
         TransactionTypes = {
@@ -580,7 +628,7 @@
                 data = context.__data[key.lower]; 
             }
             else{
-                var keysSorted = this.__keys.sort(sortKey); // todo extend with all types of keys
+                var keysSorted = this.__keys.sort(indexeddb.cmp); // todo extend with all types of keys
                 for (var i = 0; i < keysSorted.length; i++) {
                     if(key.inRange(keysSorted[i])){
                         data = context.__data[keysSorted[i]];
@@ -1025,58 +1073,6 @@
             return true;
         }
         return false;
-    }
-
-    function sortKey(item1,item2){
-        if(typeof item1 === 'number' && typeof item2 === 'number' || typeof item1 === 'string' && typeof item2 === 'string' || item1 instanceof Date && item2 instanceof Date || item1 instanceof Array && item2 instanceof Array){
-            if(item1 instanceof Array && item2 instanceof Array){
-                item1 = item1.sort(sortKey);
-                item2 = item2.sort(sortKey);
-                var length = item1.length < item2.length ? item1.length : item2.length;
-                for (var i = 0; i < length; i++) {
-                    if ( item1[i] < item2[i] ){
-                      return -1;
-                    } 
-                    if ( item1[i] > item2[i] ){
-                      return 1;
-                    }
-                }
-                if (item1.length < item2.length){
-                    return -1;
-                }
-                if (item1.length > item2.length){
-                    return 1;
-                }
-                return 0;
-            }
-            else{
-                if ( item1 < item2 ){
-                  return -1;
-                } 
-                if ( item1 > item2 ){
-                  return 1;
-                }
-                return 0; 
-            }       
-        }
-        else if(item1 instanceof Array){
-            return 1;
-        }
-        else if(item2 instanceof Array){
-            return -1;
-        }
-        else if(typeof item1 === 'string'){
-            return 1;
-        }
-        else if(typeof item2 === 'string'){
-            return -1;
-        }
-        else if(item1 instanceof Date){
-            return 1;
-        }
-        else{
-            return -1;
-        }
     }
 
     global.indexedDBmock = indexeddb;
