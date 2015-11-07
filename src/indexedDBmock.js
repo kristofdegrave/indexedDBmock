@@ -465,7 +465,7 @@
             setTimeout(function(tx) {
                 tx.error = error;
                 if (typeof tx.onabort === 'function') {
-                    tx.onabort(new IAbortEvent(this));
+                    tx.onabort(new IAbortEvent(tx));
                 }
             }, timeout, this);
         }

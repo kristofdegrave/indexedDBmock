@@ -67,9 +67,9 @@ define('IDBTransaction', [
             setTimeout(function(tx) {
                 tx.error = er;
                 if (util.isFunction(tx.onabort)) {
-                    tx.onabort(new IAbortEvent(this));
+                    tx.onabort(new IAbortEvent(tx));
                 }
-            }, util.timeout, this, er);
+            }, util.timeout, this, err);
         }
         function ObjectStore(name) {
             var timestamp = util.getTimestamp();
