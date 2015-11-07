@@ -466,7 +466,7 @@
             this._aborted = true;
 
             setTimeout(function(tx) {
-                this.error = error
+                tx.error = error
                 if (typeof tx.onabort === 'function') {
                     tx.onabort(new IAbortEvent(this));
                 }

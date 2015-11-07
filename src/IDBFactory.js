@@ -56,9 +56,7 @@ define([
                     setTimeout(function () {
                         for (var i = 0; i < db.connections.length; i++) {
                             if (db.connections[i]._connectionId !== connection._connectionId) {
-                                if (typeof db.connections[i].onversionchange === 'function') {
-                                    db.connections[i].onversionchange(new IDBVersionChangeEvent("versionchange", {target: db.connections[i], newVersion: version, oldVersion: db.connections[i].version}));
-                                }
+                                db.connections[i].__versionchange(version);
                             }
                         }
                         function upgrade(request, connection, db, version) {
