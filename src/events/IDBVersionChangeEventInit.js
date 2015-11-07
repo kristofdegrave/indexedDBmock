@@ -5,7 +5,7 @@ define('IDBVersionChangeEventInit', [], function(){
     var IDBVersionChangeEventInit = function(){
         this.oldVersion = 0;
         this.newVersion = null;
-    }
+    };
 
     return IDBVersionChangeEventInit;
 });

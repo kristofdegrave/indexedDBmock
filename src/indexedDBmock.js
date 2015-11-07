@@ -57,10 +57,7 @@
                                 connection.version = version;
                                 db.version = version;
 
-                                openDBRequest.__upgradeneeded(connection
-                                                            , new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection))
-                                                            , version
-                                                            , currentVersion);
+                                openDBRequest.__upgradeneeded(connection, new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection)), version, currentVersion);
                             }
 
                             upgrade(openDBRequest, connection, db, version);
@@ -466,7 +463,7 @@
             this._aborted = true;
 
             setTimeout(function(tx) {
-                tx.error = error
+                tx.error = error;
                 if (typeof tx.onabort === 'function') {
                     tx.onabort(new IAbortEvent(this));
                 }
@@ -531,8 +528,8 @@
             }, timeout);
         }
 
-        function error(error, code){
-            this.error = error;
+        function error(err, code){
+            this.error = err;
             this.errorCode = code;
 
             if (typeof this.onerror === 'function') {
@@ -1013,8 +1010,8 @@
     }();
 
     Request.prototype = function () {
-        function error(error, code){
-            this.error = error;
+        function error(err, code){
+            this.error = err;
             this.errorCode = code;
             this.readyState = DBRequestReadyState.done;
 
@@ -1047,7 +1044,7 @@
 
             if (typeof this.onupgradeneeded === 'function') {
                 this.onupgradeneeded(new IVersionChangeEvent("upgradeneeded", {target: this, newVersion: newVersion, oldVersion: oldVersion, returnValue: true}));
-                transaction.__commit;
+                transaction.__commit();
             }
         }
         return {
@@ -1056,7 +1053,7 @@
             // TODO Refactor in seperate object
             __blocked: blocked,
             __upgradeneeded: upgradeneeded
-        }
+        };
     }();
 
     function isValidKey(key){

@@ -6,7 +6,7 @@ define('IDBEnviroment', [
 ], function(IDBFactory){
     var IDBEnviroment = function(){
         this.indexedDB = new IDBFactory();
-    }
+    };
 
     return IDBEnviroment;
 });

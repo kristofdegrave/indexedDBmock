@@ -9,7 +9,7 @@ define('IDBKeyRange', [
         this.upper = upper;
         this.lowerOpen = lowerOpen ? lowerOpen : false;
         this.upperOpen = upperOpen ? upperOpen : false;
-    }
+    };
 
     IDBKeyRange.only = function(value){
         if(!util.isValidKey(value)){

@@ -19,10 +19,16 @@ define('util', [], function(){
     }
 
     function IsNumber(item){
-        return item && typeof item === 'number'
+        return item && typeof item === 'number';
+    }
+    function IsString(item){
+        return item && typeof item === 'string';
     }
     function IsArray(item){
         return item && item instanceof Array;
+    }
+    function IsDate(item){
+        return item && item instanceof Date;
     }
     function IsObject(item) {
         return item && item.constructor.name === "Object";
@@ -75,13 +81,15 @@ define('util', [], function(){
     return {
         containsFunction: ContainsFunction,
         isArray: IsArray,
+        isDate: IsDate,
         isFunction: IsFunction,
         isNumber: IsNumber,
         isObject: IsObject,
+        isString: IsString,
         isValidKey: IsValidKey,
         getPropertyValue: GetPropertyValue,
         getTimestamp: GetTimestamp,
         setPropertyValue: SetPropertyValue,
         timeout: 1
-    }
+    };
 });

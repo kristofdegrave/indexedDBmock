@@ -41,8 +41,8 @@ define('IDBRequest', [
         return {
             __error: Error,
             __success: Success
-        }
+        };
     }();
 
-    return IDBRequest
-})
+    return IDBRequest;
+});

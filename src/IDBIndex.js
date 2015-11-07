@@ -42,5 +42,5 @@ define('IDBIndex', [
         };
     }();
 
-    return IDBIndex
+    return IDBIndex;
 });

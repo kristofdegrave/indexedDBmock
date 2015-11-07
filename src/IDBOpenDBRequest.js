@@ -23,7 +23,7 @@ define('IDBOpenDBRequest', [
         if (typeof this.onblocked === 'function') {
             this.onblocked(new IVersionChangeEvent("blocked", {target: this, newVersion: null, oldVersion: oldVersion}));
         }
-    }
+    };
     IDBOpenDBRequest.prototype.__upgradeneeded = function (result, transaction, newVersion, oldVersion){
         this.result = result;
         this.transaction = transaction;
@@ -31,9 +31,9 @@ define('IDBOpenDBRequest', [
 
         if (typeof this.onupgradeneeded === 'function') {
             this.onupgradeneeded(new IVersionChangeEvent("upgradeneeded", {target: this, newVersion: newVersion, oldVersion: oldVersion, returnValue: true}));
-            transaction.__commit;
+            transaction.__commit();
         }
-    }
+    };
 
     return IDBOpenDBRequest;
 });

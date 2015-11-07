@@ -30,7 +30,7 @@ define('IDBCursor', [
             advance: Advance,
             continue: Continue,
             delete: Delete
-        }
+        };
     })();
 
     return IDBCursor;

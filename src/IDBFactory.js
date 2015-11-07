@@ -5,13 +5,11 @@ define('IDBFactory', [
     'IDBOpenDBRequest',
     'Database',
     'IDBDatabase',
-    'events/IDBVersionChangeEvent',
-    'events/IDBVersionChangeEventInit'
+    'IDBTransactionMode'
 ], function(IDBOpenDBRequest,
             Database,
             IDBDatabase,
-            IDBVersionChangeEvent,
-            IDBVersionChangeEventInit){
+            IDBTransactionMode){
     var IDBFactory = function(){
         this.dbs = {};
     },
@@ -69,10 +67,7 @@ define('IDBFactory', [
                             connection.version = version;
                             db.version = version;
 
-                            openDBRequest.__upgradeneeded(connection
-                                , new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection))
-                                , version
-                                , currentVersion);
+                            openDBRequest.__upgradeneeded(connection, new Transaction(null, IDBTransactionMode.VERSIONCHANGE, new Snapshot(db, connection)), version, currentVersion);
                         }
 
                         upgrade(openDBRequest, connection, db, version);
@@ -99,7 +94,7 @@ define('IDBFactory', [
                 }
             }
             return openDBRequest;
-        };
+        }
         function DeleteDatabase(name){
             var request = new IDBOpenDBRequest(null, null);
             for(var database in this.dbs)
@@ -116,10 +111,10 @@ define('IDBFactory', [
             }, timeout);
 
             return request;
-        };
+        }
         function Cmp(first, second) {
-            if(typeof first === 'number' && typeof second === 'number' || typeof first === 'string' && typeof second === 'string' || first instanceof Date && second instanceof Date || first instanceof Array && second instanceof Array){
-                if(first instanceof Array && second instanceof Array){
+            if(util.isNumber(first) && util.isNumber(second) || util.isString(first) && util.isString(second) || util.isDate(first) && util.isDate(second) || util.isArray(first) && util.isArray(second)){
+                if(util.isArray(first)&& util.isArray(second)){
                     first = first.sort(Cmp);
                     second = second.sort(Cmp);
                     var length = first.length < second.length ? first.length : second.length;
@@ -149,31 +144,31 @@ define('IDBFactory', [
                     return 0;
                 }
             }
-            else if(first instanceof Array){
+            else if(util.isArray(first)){
                 return 1;
             }
-            else if(second instanceof Array){
+            else if(util.isArray(second)){
                 return -1;
             }
-            else if(typeof first === 'string'){
+            else if(util.isString(first)){
                 return 1;
             }
-            else if(typeof second === 'string'){
+            else if(util.isString(second)){
                 return -1;
             }
-            else if(first instanceof Date){
+            else if(util.isDate(first)){
                 return 1;
             }
             else{
                 return -1;
             }
-        };
+        }
 
         return {
             open: Open,
             deleteDatabase: DeleteDatabase,
             cmp: Cmp
-        }
+        };
     })();
 
     return IDBFactory;

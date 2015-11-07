@@ -5,7 +5,7 @@ define('IDBIndexParameters', [], function(){
     var IDBIndexParameters = function(){
         this.unique = false;
         this.multiEntry = false;
-    }
+    };
 
     return IDBIndexParameters;
 });

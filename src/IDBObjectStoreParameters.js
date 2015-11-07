@@ -5,7 +5,7 @@ define('IDBObjectStoreParameters', [], function(){
     var IDBObjectStoreParameters = function(){
         this.keyPath = null;
         this.autoIncrement = false;
-    }
+    };
 
     return IDBObjectStoreParameters;
 });

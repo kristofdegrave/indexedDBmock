@@ -61,15 +61,15 @@ define('IDBTransaction', [
     };
 
     IDBTransaction.prototype = function () {
-        function Abort(error) {
+        function Abort(err) {
             this._aborted = true;
 
             setTimeout(function(tx) {
-                tx.error = error
+                tx.error = er;
                 if (util.isFunction(tx.onabort)) {
                     tx.onabort(new IAbortEvent(this));
                 }
-            }, util.timeout, this);
+            }, util.timeout, this, er);
         }
         function ObjectStore(name) {
             var timestamp = util.getTimestamp();
@@ -139,8 +139,8 @@ define('IDBTransaction', [
                 }
             }, util.timeout);
         }
-        function error(error, code){
-            this.error = error;
+        function error(err, code){
+            this.error = err;
             this.errorCode = code;
 
             if (util.isFunction(this.onerror)) {
@@ -163,5 +163,5 @@ define('IDBTransaction', [
         };
     }();
 
-    return IDBTransaction
+    return IDBTransaction;
 });
