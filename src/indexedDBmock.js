@@ -1082,5 +1082,3 @@
     global.IDBKeyRangemock = KeyRange;
     global.indexedDBmockDbs = dbs;
 })(window || self);
-
-// TODO: determine when exception is thrown.

@@ -10,7 +10,8 @@ module.exports = function(grunt) {
                 separator: ''
             },
             dist: {
-                src: ['src/**/*.js'],
+                //src: ['src/**/*.js'],
+                src:['src/indexedDBmock.js'],
                 dest: 'dist/<%= pkg.name %>.js'
             }
         },
