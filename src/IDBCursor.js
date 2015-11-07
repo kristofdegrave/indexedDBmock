@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 7/11/2015.
  */
-define([
+define('IDBCursor', [
     'IDBRequest'
 ], function(IDBRequest){
     var IDBCursor = function(source, key, direction, primaryKey){

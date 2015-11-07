@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 5/11/2015.
  */
-define([], function(){
+define('util', [], function(){
     function IsValidKey(key){
         if(typeof key === 'number' && !isNaN(key) || typeof key === 'string' || key instanceof Date && !isNaN(key)){
             return true;

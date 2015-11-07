@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 5/11/2015.
  */
-define([], function(){
+define('IEvent', [], function(){
     var IEvent = function(type, config){
         this.CAPTURING_PHASE = 1;
         this.AT_TARGET = 2;

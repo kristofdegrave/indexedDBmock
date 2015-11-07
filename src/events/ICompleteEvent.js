@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 5/11/2015.
  */
-define([
+define('ICompleteEvent', [
     'IEvent'
 ], function(IEvent){
     var ICompleteEvent = function(transaction){

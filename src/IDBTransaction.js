@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 7/11/2015.
  */
-define([
+define('IDBTransaction', [
     'events/IAbortEvent',
     'events/ICompleteEvent',
     'events/IErrorEvent',

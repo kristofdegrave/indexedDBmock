@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 5/11/2015.
  */
-define([], function(){
+define('Database', [], function(){
     var Database = function(name){
         this.name = name;
         this.version = 0;

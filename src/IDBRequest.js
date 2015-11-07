@@ -1,7 +1,7 @@
 /**
  * Created by Kristof on 5/11/2015.
  */
-define([
+define('IDBRequest', [
     'IDBRequestReadyState',
     'events/ISuccessEvent',
     'events/IErrorEvent'
