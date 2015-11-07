@@ -5,12 +5,12 @@ define('IDBDatabase', [
     'IDBRequestReadyState',
     'IDBTransactionMode',
     'IDBObjectStore',
-    'events/IVersionChangeEvent',
+    'events/IDBVersionChangeEvent',
     'events/IErrorEvent',
     'events/IAbortEvent'
 ], function(IDBRequestReadyState,
             IDBTransactionMode,
-            IVersionChangeEvent,
+            IDBVersionChangeEvent,
             IErrorEvent,
             IAbortEvent){
     var IDBDatabase = function(db, connection){
@@ -105,7 +105,7 @@ define('IDBDatabase', [
             this.readyState = IDBRequestReadyState.done;
 
             if (typeof this.onversionchange === 'function') {
-                this.onversionchange(new IVersionChangeEvent("versionchange", {target: this, newVersion: newVersion, oldVersion: this.version}));
+                this.onversionchange(new IDBVersionChangeEvent("versionchange", {target: this, newVersion: newVersion, oldVersion: this.version}));
             }
         }
         function Error(error, code){

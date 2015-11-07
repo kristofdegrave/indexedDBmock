@@ -78,6 +78,35 @@ module.exports = function(grunt) {
                 createTag: false,
                 push: false
             }
+        },
+        webpack: {
+            mock: {
+                // webpack options
+                entry: "./src/mock",
+                output: {
+                    path: "dist/",
+                    filename: "indexedDBmock-webpack.js",
+                    library: "mock",
+                    libraryTarget: "umd"
+                },
+                resolve: {
+                    extensions: ['.js'],
+                    root: './src'
+                }
+            }
+        },
+        "webpack-dev-server": {
+            options: {
+                webpack: grunt.file.read('./webpack.config.js'),
+                publicPath: "/dist"
+            },
+            start: {
+                keepAlive: true,
+                webpack: {
+                    devtool: "eval",
+                    debug: true
+                }
+            }
         }
     });
 
@@ -90,6 +119,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-nuget');
     grunt.loadNpmTasks('grunt-release');
     grunt.loadNpmTasks('grunt-bump');
+    grunt.loadNpmTasks('grunt-webpack');
 
 
 

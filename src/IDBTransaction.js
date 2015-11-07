@@ -154,8 +154,8 @@ define('IDBTransaction', [
         }
 
         return {
-            abort: abort,
-            objectStore: objectStore,
+            abort: Abort,
+            objectStore: ObjectStore,
             __commit: commit,
             __checkFinished: checkFinished,
             __complete: complete,

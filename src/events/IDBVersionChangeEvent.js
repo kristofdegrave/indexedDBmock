@@ -2,7 +2,7 @@
  * Created by Kristof on 5/11/2015.
  */
 define('IDBVersionChangeEvent', [
-    'IEvent'
+    'events/IEvent'
 ], function(IEvent){
     var IDBVersionChangeEvent = function(type, metadata){
         IEvent.call(this, type, metadata);
