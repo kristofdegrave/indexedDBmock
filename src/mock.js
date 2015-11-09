@@ -28,43 +28,6 @@ define([
     IDBTransaction,
     IDBVersionChangeEvent
 ){
-    var mock = function(){
-        //var env = new IDBEnviroment();
-
-        //this.IDBCursor = IDBCursor;
-        //this.IDBCursorWithValue = IDBCursorWithValue;
-        //this.IDBDatabase = IDBDatabase;
-        //this.IDBFactory = IDBFactory;
-        //this.IDBIndex = IDBIndex;
-        //this.IDBKeyRange = IDBKeyRange;
-        //this.IDBObjectStore = IDBObjectStore;
-        //this.IDBOpenDBRequest = IDBOpenDBRequest;
-        //this.IDBRequest = IDBRequest;
-        //this.IDBTransaction = IDBTransaction;
-        //this.IDBVersionChangeEvent = IDBVersionChangeEvent;
-        //this.indexedDB = env.indexedDB;
-    }
-
-    mock.prototype = (function(){
-        var env = new IDBEnviroment();
-
-        return {
-            IDBCursor: IDBCursor,
-            IDBCursorWithValue: IDBCursorWithValue,
-            IDBDatabase: IDBDatabase,
-            IDBFactory: IDBFactory,
-            IDBIndex: IDBIndex,
-            IDBKeyRange: IDBKeyRange,
-            IDBObjectStore: IDBObjectStore,
-            IDBOpenDBRequest: IDBOpenDBRequest,
-            IDBRequest: IDBRequest,
-            IDBTransaction: IDBTransaction,
-            IDBVersionChangeEvent: IDBVersionChangeEvent,
-            indexedDB: env.indexedDB
-        }
-    })();
-
-    //return new mock();
     var env = new IDBEnviroment();
 
     return {
@@ -81,5 +44,4 @@ define([
         IDBVersionChangeEvent: IDBVersionChangeEvent,
         indexedDB: env.indexedDB
     };
-
 });

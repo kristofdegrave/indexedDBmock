@@ -528,7 +528,7 @@
             }, timeout);
         }
 
-        function error(err, code){
+         function error(err, code){
             this.error = err;
             this.errorCode = code;
 

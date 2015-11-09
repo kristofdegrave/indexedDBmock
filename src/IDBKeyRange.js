@@ -5,10 +5,13 @@ define('IDBKeyRange', [
     'util'
 ], function(util){
     var IDBKeyRange = function(lower, upper, lowerOpen, upperOpen){
+        if(arguments.length === 0) return; // clone
+
         this.lower = lower;
         this.upper = upper;
         this.lowerOpen = lowerOpen ? lowerOpen : false;
         this.upperOpen = upperOpen ? upperOpen : false;
+        this.__id = util.guid();
     };
 
     IDBKeyRange.only = function(value){
@@ -42,7 +45,7 @@ define('IDBKeyRange', [
     };
 
     IDBKeyRange.bound = function(lower, upper, lowerOpen, upperOpen) {
-        if(!util.isValidKey(lower) || !isValidKey(upper) || upper < lower || (upper === lower && !!upperOpen && !!lowerOpen)){
+        if(!util.isValidKey(lower) || !util.isValidKey(upper) || upper < lower || (upper === lower && !!upperOpen && !!lowerOpen)){
             throw {
                 name: "DataError"
                 // TODO Add message
@@ -59,7 +62,21 @@ define('IDBKeyRange', [
             }
             return false;
         }
+
+        function Clone(context){
+            var clone = new IDBKeyRange();
+
+            clone.lower = util.clone(this.lower, context);
+            clone.upper = util.clone(this.upper, context);
+            clone.lowerOpen = util.clone(this.lowerOpen, context);
+            clone.upperOpen = util.clone(this.upperOpen, context);
+            clone.__id = util.clone(this.__id, context);
+
+            return clone;
+        }
+
         return {
+            __clone: Clone,
             __inRange: InRange
         };
     }();

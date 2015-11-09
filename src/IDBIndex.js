@@ -3,10 +3,14 @@
  */
 define('IDBIndex', [
     'IDBCursor',
-    'IDBKeyRange'
+    'IDBKeyRange',
+    'util'
 ],function (IDBCursor,
-            IDBKeyRange){
+            IDBKeyRange,
+            util){
     var IDBIndex = function(name, keyPath, params, objectStore){
+        if(arguments.length === 0) return; // Clone
+
         this.name = name;
         this.keyPath = keyPath;
         this.multiEntry = params ? params.multiEntry : undefined;
@@ -14,6 +18,7 @@ define('IDBIndex', [
 
         this.objectStore = objectStore;
         this.__data = {};
+        this.__id = util.guid();
     };
 
     IDBIndex.prototype = function (){
@@ -33,12 +38,27 @@ define('IDBIndex', [
             // TODO: Implement
         }
 
+        function Clone(context){
+            var clone = new IDBIndex();
+            clone.name = util.clone(this.name, context);
+            clone.keyPath = util.clone(this.keyPath, context);
+            clone.multiEntry = util.clone(this.multiEntry, context);
+            clone.unique = util.clone(this.unique, context);
+            clone.objectStore = util.clone(this.objectStore, context);
+
+            clone.__id = util.clone(this.__id, context);
+            clone.__data = util.clone(this.__data, context);
+
+            return clone;
+        }
+
         return {
             count: Count,
             get: Get,
             getKey: GetKey,
             openCursor: OpenCursor,
-            openKeyCursor: OpenKeyCursor
+            openKeyCursor: OpenKeyCursor,
+            __clone: Clone
         };
     }();
 

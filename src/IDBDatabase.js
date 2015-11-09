@@ -3,17 +3,22 @@
  */
 define('IDBDatabase', [
     'IDBRequestReadyState',
+    'IDBTransaction',
     'IDBTransactionMode',
     'IDBObjectStore',
     'events/IDBVersionChangeEvent',
     'events/IErrorEvent',
-    'events/IAbortEvent'
+    'events/IAbortEvent',
+    'util'
 ], function(IDBRequestReadyState,
+            IDBTransaction,
             IDBTransactionMode,
+            IDBObjectStore,
             IDBVersionChangeEvent,
             IErrorEvent,
-            IAbortEvent){
-    var IDBDatabase = function(db, connection){
+            IAbortEvent,
+            util){
+    var IDBDatabase = function(db){
         this.name = db.name;
         this.version = db.version;
         this.objectStoreNames = db.objectStoreNames;
@@ -22,24 +27,27 @@ define('IDBDatabase', [
         this.onerror = null;
         this.onversionchange = null;
 
-        this._db = db;
-        this._connection = connection;
-        this._objectStores = db.objectStores || [];
+        this.__db = db;
+        this.__snapshot = db.snapshot();
+        this.__connectionId = util.guid();
     };
 
     IDBDatabase.prototype = function () {
         function Close() {
-            this._connection.close();
+            this.__db.removeConnection(this);
         }
         function Commit(){
-            this._db.objectStores = this._objectStores;
-            this._db.objectStoreNames = this.objectStoreNames;
+            this.__db.commitSnapshot(this.__snapshot);
         }
         function Transaction(objectStoreNames, mode) {
-            return this._connection.transaction(objectStoreNames, mode);
+            var transaction = new IDBTransaction(objectStoreNames, mode, this);
+            if(mode === IDBTransactionMode.versionchange){
+                this.transaction = transaction;
+            }
+            return transaction;
         }
         function CreateObjectStore(name, parameters){
-            if(this.transaction.mode !== IDBTransactionMode.VERSIONCHANGE){
+            if(this.transaction.mode !== IDBTransactionMode.versionchange){
                 throw {
                     name: "InvalidStateError"
                     // TODO: Add message
@@ -47,8 +55,7 @@ define('IDBDatabase', [
             }
 
             // TODO: Check valid key path?
-
-            if(parameters && parameters.keyPath instanceof Array)
+            if(parameters && util.isArray(parameters.keyPath))
             {
                 for (var i = 0; i < parameters.keyPath.length; i++){
                     if(parameters.keyPath[i] === ""){
@@ -62,30 +69,20 @@ define('IDBDatabase', [
             }
 
             var objectStore = new IDBObjectStore(name, parameters, this.transaction);
-            this._objectStores.push(objectStore);
+            this.__snapshot.addObjectStore(objectStore);
             this.objectStoreNames.push(name);
 
             return objectStore;
         }
         function DeleteObjectStore(name){
-            if(this.transaction.mode !== IDBTransactionMode.VERSIONCHANGE){
+            if(this.transaction.mode !== IDBTransactionMode.versionchange){
                 throw {
                     name: "InvalidStateError"
                     // TODO: Add message
                 };
             }
 
-            var objectStoreFound = false;
-
-            for(var i = 0; i < this.objectStoreNames.length; i++)
-            {
-                if(this.objectStoreNames[i] === name){
-                    this.objectStoreNames.splice(i, 1);
-                    objectStoreFound = true;
-                }
-            }
-
-            if(!objectStoreFound)
+            if(this.objectStoreNames.indexOf(name) === -1)
             {
                 throw {
                     name: "NotFoundError"
@@ -93,18 +90,12 @@ define('IDBDatabase', [
                 };
             }
 
-            for(var j = 0; j < this._objectStores.length; j++)
-            {
-                if(this._objectStores[j].name === name){
-                    this._objectStores.splice(j, 1);
-                }
-            }
+            this.__snapshot.removeObjectStore(name);
         }
-
         function Versionchange (newVersion){
             this.readyState = IDBRequestReadyState.done;
 
-            if (typeof this.onversionchange === 'function') {
+            if (util.isFunction(this.onversionchange)) {
                 this.onversionchange(new IDBVersionChangeEvent("versionchange", {target: this, newVersion: newVersion, oldVersion: this.version}));
             }
         }
@@ -113,16 +104,21 @@ define('IDBDatabase', [
             this.errorCode = code;
             this.readyState = IDBRequestReadyState.done;
 
-            if (typeof this.onerror === 'function') {
+            if (util.isFunction(this.onerror)) {
                 this.onerror(new IErrorEvent(this));
             }
         }
-
         function Abort(error){
             this.error = error;
-            if (typeof this.onabort === 'function') {
+            if (util.isFunction(this.onabort)) {
                 this.onabort(new IAbortEvent(this));
             }
+        }
+        function GetObjectStores(){
+            return this.__snapshot.objectStores;
+        }
+        function GetObjectStoreNames(){
+            return this.__snapshot.objectStoreNames;
         }
 
         return {
@@ -133,6 +129,8 @@ define('IDBDatabase', [
             __abort: Abort,
             __commit: Commit,
             __error: Error,
+            __getObjectStores: GetObjectStores,
+            __getObjectStoreNames: GetObjectStoreNames,
             __versionchange: Versionchange
         };
     }();

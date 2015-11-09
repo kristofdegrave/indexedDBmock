@@ -4,17 +4,17 @@
 define('IDBObjectStore', [
     'IDBRequest',
     'IDBKeyRange',
-    'IDBFactory',
     'IDBTransactionMode',
     'IDBIndex',
     'util'
 ],function(IDBRequest,
            IDBKeyRange,
-           IDBFactory,
            IDBTransactionMode,
            IDBIndex,
            util){
     var IDBObjectStore = function (name, params, transaction){
+        if(arguments.length === 0) return; // Clone
+
         this.name = name;
         this.keyPath = params ? params.keyPath : undefined;
         this.autoIncrement = params ? params.autoIncrement : undefined;
@@ -26,6 +26,7 @@ define('IDBObjectStore', [
         this.__keys = [];
         this.__actions = [];
         this.__latestKey = 0;
+        this.__id = util.guid();
     };
 
     IDBObjectStore.prototype = function (){
@@ -51,9 +52,9 @@ define('IDBObjectStore', [
                 data = this.__data[key.lower];
             }
             else{
-                var keysSorted = this.__keys.sort(IDBFactory.prototype.cmp); // todo extend with all types of keys
+                var keysSorted = this.__keys.sort(util.cmp); // todo extend with all types of keys
                 for (var i = 0; i < keysSorted.length; i++) {
-                    if(key.inRange(keysSorted[i])){
+                    if(key.__inRange(keysSorted[i])){
                         data = this.__data[keysSorted[i]];
                         break;
                     }
@@ -86,7 +87,7 @@ define('IDBObjectStore', [
             // TODO Implement
         }
         function CreateIndex(name, keyPath, parameters){
-            if(this.transaction.mode !== IDBTransactionMode.VERSIONCHANGE){
+            if(this.transaction.mode !== IDBTransactionMode.versionchange){
                 exception(this, {
                     name: "InvalidStateError"
                     // TODO Add message
@@ -116,7 +117,7 @@ define('IDBObjectStore', [
             return index;
         }
         function DeleteIndex(name){
-            if(this.transaction.mode !== IDBTransactionMode.VERSIONCHANGE){
+            if(this.transaction.mode !== IDBTransactionMode.versionchange){
                 exception(this, {
                     name: "InvalidStateError"
                     // TODO Add message
@@ -163,7 +164,7 @@ define('IDBObjectStore', [
                 request.__error(err);
                 context.transaction.__error(err);
                 context.transaction.abort(err);
-            }, timeout);
+            }, util.timeout);
 
             return request;
         }
@@ -179,14 +180,14 @@ define('IDBObjectStore', [
             var request = new IDBRequest(this, this.transaction);
             var internalKey = key;
 
-            if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
+            if(context.transaction.__objectStoreNames.indexOf(context.name) == -1){
                 exception(context, {
                     name: "InvalidStateError"
                     // TODO Add message
                 }, timestamp);
             }
 
-            if(context.transaction.mode == IDBTransactionMode.READONLY){
+            if(context.transaction.mode == IDBTransactionMode.readonly){
                 exception(context, {
                     name: "ReadOnlyError"
                     // TODO Add message
@@ -255,7 +256,7 @@ define('IDBObjectStore', [
                     continue;
                 }
 
-                if(index.multiEntry && util.isArray(internalKey)){
+                if(index.multiEntry && util.isArray(indexKey)){
                     var keys = {};
                     for (var l = 0; l < indexKey.length; l++) {
                         if(util.isValidKey(indexKey[l]) && !keys[indexKey[l]]){
@@ -308,7 +309,7 @@ define('IDBObjectStore', [
                 if(idx.multiEntry && util.isArray(idxKey)){
                     var kys = {};
                     for (var m = 0; m < idxKey.length; m++) {
-                        if(typeof idxKey[m] === 'number' && !kys[idxKey[m]]){
+                        if(util.isNumber(idxKey[m]) && !kys[idxKey[m]]){
                             kys[idxKey[m]] = idxKey[m];
                             if(!idx.__data[idxKey[m]]){
                                 idx.__data[idxKey[m]] = [];
@@ -347,6 +348,24 @@ define('IDBObjectStore', [
             return this.__actions.length === 0;
         }
 
+        function Clone(context){
+            var clone = new IDBObjectStore();
+            clone.name = util.clone(this.name, context);
+            clone.keyPath = util.clone(this.keyPath, context);
+            clone.autoIncrement = util.clone(this.autoIncrement, context);
+            clone.indexNames = util.clone(this.indexNames, context);
+
+            clone._indexes = util.clone(this._indexes, context);
+            clone.__data = util.clone(this.__data, context);
+            clone.__keys = util.clone(this.__keys, context);
+            //TODO Clone needed?
+            clone.__actions = [];
+            clone.__latestKey = util.clone(this.__latestKey, context);
+            clone.__id = util.clone(this.__id, context)
+
+            return clone;
+        }
+
         return {
             add: Add,
             get: Get,
@@ -358,7 +377,8 @@ define('IDBObjectStore', [
             createIndex: CreateIndex,
             deleteIndex: DeleteIndex,
             index: Index,
-            __finished: finished
+            __finished: finished,
+            __clone: Clone
         };
     }();
 

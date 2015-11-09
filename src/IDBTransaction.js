@@ -12,17 +12,18 @@ define('IDBTransaction', [
             ICompleteEvent,
             IDBTransactionMode,
             util){
-    var IDBTransaction = function (objectStoreNames, mode, snapshot){
-        this.db = snapshot;
+    var IDBTransaction = function (objectStoreNames, mode, db){
+        if(arguments.length === 0) return; // Clone
+
         this.__active = true;
-        this._aborted = false;
+        this.__aborted = false;
         this.__actions = [];
 
         if(!mode){
-            mode = IDBTransactionMode.READONLY;
+            mode = IDBTransactionMode.readonly;
         }
 
-        if(mode !== IDBTransactionMode.VERSIONCHANGE && (!objectStoreNames || objectStoreNames.length === 0)){
+        if(mode !== IDBTransactionMode.versionchange && (!objectStoreNames || objectStoreNames.length === 0)){
             this.aborted = true;
             this.__checkFinished(this);
             throw {
@@ -30,22 +31,9 @@ define('IDBTransaction', [
             };
         }
 
-        if(mode !== IDBTransactionMode.READONLY && mode !== IDBTransactionMode.READWRITE && mode !== IDBTransactionMode.VERSIONCHANGE)
+        if(mode !== IDBTransactionMode.readonly && mode !== IDBTransactionMode.readwrite && mode !== IDBTransactionMode.versionchange)
         {
-            mode = IDBTransactionMode.READONLY;
-        }
-
-        if(objectStoreNames) {
-            for (var i = 0; i < objectStoreNames.length; i++) {
-                if(snapshot.objectStoreNames.indexOf(objectStoreNames[i]) === -1)
-                {
-                    this.aborted = true;
-                    this.__checkFinished(this);
-                    throw {
-                        name: "NotFoundError"
-                    };
-                }
-            }
+            mode = IDBTransactionMode.readonly;
         }
 
         this.oncomplete = undefined;
@@ -54,17 +42,32 @@ define('IDBTransaction', [
 
         this.error = null;
         this.mode = mode;
-        this.objectStoreNames = objectStoreNames;
-        this.db.transaction = this;
+
+        this.db = db;
+        this.__objectStoreNames = objectStoreNames;
+        this.__id = util.guid();
+
+        if(objectStoreNames) {
+            for (var i = 0; i < objectStoreNames.length; i++) {
+                if(db.objectStoreNames.indexOf(objectStoreNames[i]) === -1)
+                {
+                    this.__aborted = true;
+                    this.__checkFinished(this);
+                    throw {
+                        name: "NotFoundError"
+                    };
+                }
+            }
+        }
 
         this.__checkFinished(this);
     };
 
     IDBTransaction.prototype = function () {
         function Abort(err) {
-            this._aborted = true;
+            this.__aborted = true;
 
-            setTimeout(function(tx) {
+            setTimeout(function(tx, er) {
                 tx.error = er;
                 if (util.isFunction(tx.onabort)) {
                     tx.onabort(new IAbortEvent(tx));
@@ -74,45 +77,45 @@ define('IDBTransaction', [
         function ObjectStore(name) {
             var timestamp = util.getTimestamp();
             this.__actions.push(timestamp);
-            if(this.mode !== IDBTransactionMode.VERSIONCHANGE) {
-                if (this.objectStoreNames.indexOf(name) === -1) {
+            if(this.mode !== IDBTransactionMode.versionchange) {
+                if (this.__objectStoreNames.indexOf(name) === -1) {
                     this.__actions.splice(this.__actions.indexOf(timestamp),1);
-                    checkFinished(this,undefined,timestamp);
+                    this.__checkFinished(this,undefined,timestamp);
                     throw {
                         name: "NotFoundError"
                     };
                 }
             }
 
-            for(var j = 0; j < this.db._objectStores.length; j++)
+            for(var j = 0; j < this.db.__getObjectStores().length; j++)
             {
-                if(this.db._objectStores[j].name === name){
-                    var obj = this.db._objectStores[j];
+                if(this.db.__getObjectStores()[j].name === name){
+                    var obj = this.db.__getObjectStores()[j];
                     obj.transaction = this;
-                    checkFinished(this,obj,timestamp);
+                    this.__checkFinished(this,obj,timestamp);
                     return obj;
                 }
             }
 
             this.__actions.splice(this.__actions.indexOf(timestamp),1);
-            checkFinished(this,undefined,timestamp);
+            this.__checkFinished(this,undefined,timestamp);
             throw {
                 name: "NotFoundError"
             };
         }
 
-        function commit(){
+        function Commit(){
             //checkFinished(this);
-            for (var i = 0; i < this.db._objectStores.length; i++) {
+            for (var i = 0; i < this.db.__getObjectStores().length; i++) {
                 var timestamp = util.getTimestamp();
                 this.__actions.push(timestamp);
-                checkFinished(this,this.db._objectStores[i], timestamp);
+                this.__checkFinished(this,this.db.__getObjectStores()[i], timestamp);
             }
         }
         function commitInternal(context){
-            if(!context._aborted && !context.__commited) {
+            if(!context.__aborted && !context.__commited) {
                 context.__commited = true;
-                if(this.mode != IDBTransactionMode.READONLY)
+                if(context.mode && context.mode !== IDBTransactionMode.readonly)
                 {
                     context.db.__commit();
                 }
@@ -120,7 +123,7 @@ define('IDBTransaction', [
                 context.__complete();
             }
         }
-        function checkFinished(context, obj, timestamp){
+        function CheckFinished(context, obj, timestamp){
             setTimeout(function(){
                 if(!obj){
                     if(context.__actions.length === 0){
@@ -135,11 +138,11 @@ define('IDBTransaction', [
                 }
                 else
                 {
-                    checkFinished(context, obj, timestamp);
+                    context.__checkFinished(context, obj, timestamp);
                 }
             }, util.timeout);
         }
-        function error(err, code){
+        function Error(err, code){
             this.error = err;
             this.errorCode = code;
 
@@ -147,19 +150,35 @@ define('IDBTransaction', [
                 this.onerror(new IErrorEvent(this));
             }
         }
-        function complete(){
+        function Complete(){
             if (util.isFunction(this.oncomplete)) {
                 this.oncomplete(new ICompleteEvent(this));
             }
         }
 
+        function Clone(context){
+            var clone = new IDBTransaction();
+
+            clone.__aborted = util.clone(this.__aborted, context);
+            clone.__actions = util.clone(this.__actions, context);
+            clone.__active = util.clone(this.__active, context);
+            clone.error = util.clone(this.error, context);
+            clone.mode = util.clone(this.mode, context);
+            clone.__objectStoreNames = util.clone(this.__objectStoreNames, context);
+            clone.db = util.clone(this.db, context);
+            clone.__id = util.clone(this.__id, context)
+
+            return clone;
+        }
+
         return {
             abort: Abort,
             objectStore: ObjectStore,
-            __commit: commit,
-            __checkFinished: checkFinished,
-            __complete: complete,
-            __error: error
+            __clone: Clone,
+            __commit: Commit,
+            __checkFinished: CheckFinished,
+            __complete: Complete,
+            __error: Error
         };
     }();
 

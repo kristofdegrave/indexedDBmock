@@ -718,7 +718,7 @@ QUnit.test("Putting data with existing internal key", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
     });
 QUnit.test("Putting data with invalid key", function (assert) {
     var done = assert.async();
