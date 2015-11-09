@@ -361,7 +361,7 @@ define('IDBObjectStore', [
             //TODO Clone needed?
             clone.__actions = [];
             clone.__latestKey = util.clone(this.__latestKey, context);
-            clone.__id = util.clone(this.__id, context)
+            clone.__id = util.clone(this.__id, context);
 
             return clone;
         }

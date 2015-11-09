@@ -166,7 +166,7 @@ define('IDBTransaction', [
             clone.mode = util.clone(this.mode, context);
             clone.__objectStoreNames = util.clone(this.__objectStoreNames, context);
             clone.db = util.clone(this.db, context);
-            clone.__id = util.clone(this.__id, context)
+            clone.__id = util.clone(this.__id, context);
 
             return clone;
         }

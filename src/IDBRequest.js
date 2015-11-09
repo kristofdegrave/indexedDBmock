@@ -51,7 +51,7 @@ define('IDBRequest', [
             clone.source = util.clone(this.source, context);
             clone.transaction = util.clone(this.transaction, context);
             clone.readyState = util.clone(this.readyState, context);
-            clone.__id = util.clone(this.__id, context)
+            clone.__id = util.clone(this.__id, context);
 
             return clone;
         }

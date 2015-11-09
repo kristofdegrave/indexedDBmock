@@ -92,7 +92,7 @@ define('Database', [
                     }, 8);
                 }
                 else {
-                    var newConnection = new IDBDatabase(db)
+                    var newConnection = new IDBDatabase(db);
                     db.addConnection(newConnection);
                     openDBRequest.__success(newConnection);
                 }
