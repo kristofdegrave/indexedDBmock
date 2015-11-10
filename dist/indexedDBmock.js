@@ -11,41 +11,41 @@
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
-
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
-
+/******/
 /******/ 		// Check if module is in cache
 /******/ 		if(installedModules[moduleId])
 /******/ 			return installedModules[moduleId].exports;
-
+/******/
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			exports: {},
 /******/ 			id: moduleId,
 /******/ 			loaded: false
 /******/ 		};
-
+/******/
 /******/ 		// Execute the module function
 /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-
+/******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.loaded = true;
-
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-
-
+/******/
+/******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
-
+/******/
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
-
+/******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-
+/******/ 	__webpack_require__.p = "dist/";
+/******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(0);
 /******/ })
@@ -85,7 +85,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    IDBVersionChangeEvent
 	){
 	    var env = new IDBEnviroment();
-
+	
 	    return {
 	        IDBCursor: IDBCursor,
 	        IDBCursorWithValue: IDBCursorWithValue,
@@ -114,14 +114,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	], __WEBPACK_AMD_DEFINE_RESULT__ = function(util){
 	    var IDBKeyRange = function(lower, upper, lowerOpen, upperOpen){
 	        if(arguments.length === 0) return; // clone
-
+	
 	        this.lower = lower;
 	        this.upper = upper;
 	        this.lowerOpen = lowerOpen ? lowerOpen : false;
 	        this.upperOpen = upperOpen ? upperOpen : false;
 	        this.__id = util.guid();
 	    };
-
+	
 	    IDBKeyRange.only = function(value){
 	        if(!util.isValidKey(value)){
 	            throw {
@@ -131,7 +131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return new KeyRange(value, value, false, false);
 	    };
-
+	
 	    IDBKeyRange.lowerBound = function(lower, open) {
 	        if(!util.isValidKey(lower)){
 	            throw {
@@ -141,7 +141,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return new KeyRange(lower, undefined, open ? open : false, true);
 	    };
-
+	
 	    IDBKeyRange.upperBound = function(upper, open) {
 	        if(!util.isValidKey(upper)){
 	            throw {
@@ -151,7 +151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return new KeyRange(undefined, upper, true, open ? open : false);
 	    };
-
+	
 	    IDBKeyRange.bound = function(lower, upper, lowerOpen, upperOpen) {
 	        if(!util.isValidKey(lower) || !util.isValidKey(upper) || upper < lower || (upper === lower && !!upperOpen && !!lowerOpen)){
 	            throw {
@@ -159,10 +159,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // TODO Add message
 	            };
 	        }
-
+	
 	        return new KeyRange(lower, upper, lowerOpen ? lowerOpen : false, upperOpen ? upperOpen : false);
 	    };
-
+	
 	    IDBKeyRange.prototype = function(){
 	        function InRange(key){
 	            if((!this.lower || key > this.lower || key === this.lower && !this.lowerOpen) && (!this.upper || key < this.upper || key === this.upper && !this.upperOpen)){
@@ -170,25 +170,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return false;
 	        }
-
+	
 	        function Clone(context){
 	            var clone = new IDBKeyRange();
-
+	
 	            clone.lower = util.clone(this.lower, context);
 	            clone.upper = util.clone(this.upper, context);
 	            clone.lowerOpen = util.clone(this.lowerOpen, context);
 	            clone.upperOpen = util.clone(this.upperOpen, context);
 	            clone.__id = util.clone(this.__id, context);
-
+	
 	            return clone;
 	        }
-
+	
 	        return {
 	            __clone: Clone,
 	            __inRange: InRange
 	        };
 	    }();
-
+	
 	    return IDBKeyRange;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -336,19 +336,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    function clone(obj, context) {
 	        var copy;
-
+	
 	        // Handle the 3 simple types, and null or undefined
 	        if (null === obj || "object" != typeof obj) return obj;
-
+	
 	        context = context || {};
-
+	
 	        // Handle Date
 	        if (obj instanceof Date) {
 	            copy = new Date();
 	            copy.setTime(obj.getTime());
 	            return copy;
 	        }
-
+	
 	        // Handle Array
 	        if (obj instanceof Array) {
 	            copy = [];
@@ -357,7 +357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return copy;
 	        }
-
+	
 	        // Handle Object
 	        if (obj instanceof Object) {
 	            copy = {};
@@ -382,10 +382,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return copy;
 	        }
-
+	
 	        throw new Error("Unable to copy obj! Its type isn't supported.");
 	    }
-
+	
 	    return {
 	        clone: clone,
 	        containsFunction: ContainsFunction,
@@ -421,7 +421,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.key = key;
 	        this.primaryKey = primaryKey;
 	    };
-
+	
 	    IDBCursor.prototype = (function (){
 	        function Update(value){
 	            // TODO: Implement
@@ -435,7 +435,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function Delete(){
 	            // TODO: Implement
 	        }
-
+	
 	        return {
 	            update: Update,
 	            advance: Advance,
@@ -443,7 +443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            delete: Delete
 	        };
 	    })();
-
+	
 	    return IDBCursor;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -465,7 +465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util){
 	    var IDBRequest = function(source, transaction){
 	            if(arguments.length === 0) return; // Clone
-
+	
 	            this.error = undefined;
 	            this.result = undefined;
 	            this.source = source;
@@ -475,47 +475,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.onerror = null;
 	            this.__id = util.guid();
 	        };
-
+	
 	    IDBRequest.prototype = function () {
 	        function Error(error, code){
 	            this.error = error;
 	            this.errorCode = code;
 	            this.readyState = IDBRequestReadyState.done;
-
+	
 	            if (util.isFunction(this.onerror)) {
 	                this.onerror(new IErrorEvent(this));
 	            }
 	        }
-
+	
 	        function Success(result){
 	            this.result = result;
 	            this.readyState = IDBRequestReadyState.done;
-
+	
 	            if (util.isFunction(this.onsuccess)) {
 	                this.onsuccess(new ISuccessEvent(this));
 	            }
 	        }
-
+	
 	        function Clone(context){
 	            var clone = new IDBRequest();
-
+	
 	            clone.error = util.clone(this.error, context);
 	            clone.result = util.clone(this.result, context);
 	            clone.source = util.clone(this.source, context);
 	            clone.transaction = util.clone(this.transaction, context);
 	            clone.readyState = util.clone(this.readyState, context);
 	            clone.__id = util.clone(this.__id, context);
-
+	
 	            return clone;
 	        }
-
+	
 	        return {
 	            __clone: Clone,
 	            __error: Error,
 	            __success: Success
 	        };
 	    }();
-
+	
 	    return IDBRequest;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -531,7 +531,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        done: "done",
 	        pending: "pending"
 	    };
-
+	
 	    return IDBRequestReadyState;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -548,9 +548,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var ISuccessEvent = function(request){
 	        IEvent.call(this, "success", {target: request, returnValue: true});
 	    };
-
+	
 	    ISuccessEvent.prototype = IEvent.prototype;
-
+	
 	    return ISuccessEvent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -566,7 +566,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.CAPTURING_PHASE = 1;
 	        this.AT_TARGET = 2;
 	        this.BUBBLING_PHASE = 3;
-
+	
 	        this.bubbles = config.bubbles || false;
 	        this.cancelBubble = (config.bubbles && config.cancelable) || false;
 	        this.cancelable = config.cancelable || false;
@@ -581,7 +581,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.timestamp = Date.now();
 	        this.type = type;
 	    };
-
+	
 	    IEvent.prototype = (function(){
 	        function PreventDefault(){
 	            this.defaultPrevented = true;
@@ -589,13 +589,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function StopImmediatePropagation(){
 	            this.cancelBubble = true;
 	        }
-
+	
 	        return {
 	            preventDefault: PreventDefault,
 	            stopImmediatePropagation: StopImmediatePropagation
 	        };
 	    })();
-
+	
 	    return IEvent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -612,9 +612,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var IErrorEvent = function(request){
 	        IEvent.call(this, "error", {target: request, returnValue: true});
 	    };
-
+	
 	    IErrorEvent.prototype = IEvent.prototype;
-
+	
 	    return IErrorEvent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -646,16 +646,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.name = db.name;
 	        this.version = db.version;
 	        this.objectStoreNames = db.objectStoreNames;
-
+	
 	        this.onabort = null;
 	        this.onerror = null;
 	        this.onversionchange = null;
-
+	
 	        this.__db = db;
 	        this.__snapshot = db.snapshot();
 	        this.__connectionId = util.guid();
 	    };
-
+	
 	    IDBDatabase.prototype = function () {
 	        function Close() {
 	            this.__db.removeConnection(this);
@@ -677,7 +677,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    // TODO: Add message
 	                };
 	            }
-
+	
 	            // TODO: Check valid key path?
 	            if(parameters && util.isArray(parameters.keyPath))
 	            {
@@ -691,11 +691,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }
-
+	
 	            var objectStore = new IDBObjectStore(name, parameters, this.transaction);
 	            this.__snapshot.addObjectStore(objectStore);
 	            this.objectStoreNames.push(name);
-
+	
 	            return objectStore;
 	        }
 	        function DeleteObjectStore(name){
@@ -705,7 +705,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    // TODO: Add message
 	                };
 	            }
-
+	
 	            if(this.objectStoreNames.indexOf(name) === -1)
 	            {
 	                throw {
@@ -713,12 +713,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    // TODO: Add message
 	                };
 	            }
-
+	
 	            this.__snapshot.removeObjectStore(name);
 	        }
 	        function Versionchange (newVersion){
 	            this.readyState = IDBRequestReadyState.done;
-
+	
 	            if (util.isFunction(this.onversionchange)) {
 	                this.onversionchange(new IDBVersionChangeEvent("versionchange", {target: this, newVersion: newVersion, oldVersion: this.version}));
 	            }
@@ -727,7 +727,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.error = error;
 	            this.errorCode = code;
 	            this.readyState = IDBRequestReadyState.done;
-
+	
 	            if (util.isFunction(this.onerror)) {
 	                this.onerror(new IErrorEvent(this));
 	            }
@@ -744,7 +744,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function GetObjectStoreNames(){
 	            return this.__snapshot.objectStoreNames;
 	        }
-
+	
 	        return {
 	            close: Close,
 	            transaction: Transaction,
@@ -758,7 +758,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            __versionchange: Versionchange
 	        };
 	    }();
-
+	
 	    return IDBDatabase;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -782,15 +782,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util){
 	    var IDBTransaction = function (objectStoreNames, mode, db){
 	        if(arguments.length === 0) return; // Clone
-
+	
 	        this.__active = true;
 	        this.__aborted = false;
 	        this.__actions = [];
-
+	
 	        if(!mode){
 	            mode = IDBTransactionMode.readonly;
 	        }
-
+	
 	        if(mode !== IDBTransactionMode.versionchange && (!objectStoreNames || objectStoreNames.length === 0)){
 	            this.aborted = true;
 	            this.__checkFinished(this);
@@ -798,23 +798,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	                name: "InvalidAccessError"
 	            };
 	        }
-
+	
 	        if(mode !== IDBTransactionMode.readonly && mode !== IDBTransactionMode.readwrite && mode !== IDBTransactionMode.versionchange)
 	        {
 	            mode = IDBTransactionMode.readonly;
 	        }
-
+	
 	        this.oncomplete = undefined;
 	        this.onerror = undefined;
 	        this.onabort = undefined;
-
+	
 	        this.error = null;
 	        this.mode = mode;
-
+	
 	        this.db = db;
 	        this.__objectStoreNames = objectStoreNames;
 	        this.__id = util.guid();
-
+	
 	        if(objectStoreNames) {
 	            for (var i = 0; i < objectStoreNames.length; i++) {
 	                if(db.objectStoreNames.indexOf(objectStoreNames[i]) === -1)
@@ -827,14 +827,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
-
+	
 	        this.__checkFinished(this);
 	    };
-
+	
 	    IDBTransaction.prototype = function () {
 	        function Abort(err) {
 	            this.__aborted = true;
-
+	
 	            setTimeout(function(tx, er) {
 	                tx.error = er;
 	                if (util.isFunction(tx.onabort)) {
@@ -854,7 +854,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    };
 	                }
 	            }
-
+	
 	            for(var j = 0; j < this.db.__getObjectStores().length; j++)
 	            {
 	                if(this.db.__getObjectStores()[j].name === name){
@@ -864,14 +864,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return obj;
 	                }
 	            }
-
+	
 	            this.__actions.splice(this.__actions.indexOf(timestamp),1);
 	            this.__checkFinished(this,undefined,timestamp);
 	            throw {
 	                name: "NotFoundError"
 	            };
 	        }
-
+	
 	        function Commit(){
 	            //checkFinished(this);
 	            for (var i = 0; i < this.db.__getObjectStores().length; i++) {
@@ -913,7 +913,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function Error(err, code){
 	            this.error = err;
 	            this.errorCode = code;
-
+	
 	            if (util.isFunction(this.onerror)) {
 	                this.onerror(new IErrorEvent(this));
 	            }
@@ -923,10 +923,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.oncomplete(new ICompleteEvent(this));
 	            }
 	        }
-
+	
 	        function Clone(context){
 	            var clone = new IDBTransaction();
-
+	
 	            clone.__aborted = util.clone(this.__aborted, context);
 	            clone.__actions = util.clone(this.__actions, context);
 	            clone.__active = util.clone(this.__active, context);
@@ -935,10 +935,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            clone.__objectStoreNames = util.clone(this.__objectStoreNames, context);
 	            clone.db = util.clone(this.db, context);
 	            clone.__id = util.clone(this.__id, context);
-
+	
 	            return clone;
 	        }
-
+	
 	        return {
 	            abort: Abort,
 	            objectStore: ObjectStore,
@@ -949,7 +949,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            __error: Error
 	        };
 	    }();
-
+	
 	    return IDBTransaction;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -966,9 +966,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var IAbortEvent = function(transaction){
 	        IEvent.call(this, "abort", {target: transaction, returnValue: true});
 	    };
-
+	
 	    IAbortEvent.prototype = IEvent.prototype;
-
+	
 	    return IAbortEvent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -985,9 +985,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var ICompleteEvent = function(transaction){
 	        IEvent.call(this, "complete", {target: transaction, returnValue: true});
 	    };
-
+	
 	    ICompleteEvent.prototype = IEvent.prototype;
-
+	
 	    return ICompleteEvent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1004,7 +1004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        readwrite: "readwrite",
 	        versionchange: "versionchange"
 	    };
-
+	
 	    return IDBTransactionMode;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1028,13 +1028,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	           util){
 	    var IDBObjectStore = function (name, params, transaction){
 	        if(arguments.length === 0) return; // Clone
-
+	
 	        this.name = name;
 	        this.keyPath = params ? params.keyPath : undefined;
 	        this.autoIncrement = params ? params.autoIncrement : undefined;
 	        this.indexNames = [];
 	        this.transaction = transaction;
-
+	
 	        this._indexes = [];
 	        this.__data = {};
 	        this.__keys = [];
@@ -1042,26 +1042,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.__latestKey = 0;
 	        this.__id = util.guid();
 	    };
-
+	
 	    IDBObjectStore.prototype = function (){
 	        function Get(key){
 	            var timestamp = (new Date()).getTime();
 	            var request = new IDBRequest(this, this.transaction);
 	            var data;
-
+	
 	            this.__actions.push(timestamp);
-
+	
 	            if(!(key instanceof IDBKeyRange)){
 	                key = IDBKeyRange.only(key);
 	            }
-
+	
 	            if(this.transaction.db.objectStoreNames.indexOf(this.name) == -1){
 	                error(this, request, {
 	                    name: "InvalidStateError"
 	                    // TODO Add message
 	                });
 	            }
-
+	
 	            if(key.upper === key.lower){
 	                data = this.__data[key.lower];
 	            }
@@ -1074,12 +1074,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }
-
+	
 	            setTimeout(function (context) {
 	                request.__success(data);
 	                context.__actions.splice(context.__actions.indexOf(timestamp),1);
 	            }, util.timeout, this);
-
+	
 	            return request;
 	        }
 	        function Put(data, key){
@@ -1107,7 +1107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    // TODO Add message
 	                });
 	            }
-
+	
 	            if(keyPath && util.isArray(keyPath))
 	            {
 	                for (var i = 0; i < keyPath.length; i++){
@@ -1119,15 +1119,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }
-
+	
 	            // TODO: Import existing data in the object store
-
+	
 	            // TODO: Check valid key path?
-
+	
 	            var index = new IDBIndex(name, keyPath, parameters, this);
 	            this._indexes.push(index);
 	            this.indexNames.push(name);
-
+	
 	            return index;
 	        }
 	        function DeleteIndex(name){
@@ -1137,7 +1137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    // TODO Add message
 	                });
 	            }
-
+	
 	            var indexIndex = this.indexNames.indexOf(name);
 	            if(indexIndex === -1)
 	            {
@@ -1150,7 +1150,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            {
 	                this.indexNames.splice(indexIndex, 1);
 	            }
-
+	
 	            for(var j = 0; j < this._indexes.length; j++)
 	            {
 	                if(this._indexes[j].name === name){
@@ -1166,20 +1166,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    return this._indexes[j];
 	                }
 	            }
-
+	
 	            exception(this, {
 	                name: "NotFoundError"
 	                // TODO Add message
 	            });
 	        }
-
+	
 	        function error(context, request, err){
 	            setTimeout(function () {
 	                request.__error(err);
 	                context.transaction.__error(err);
 	                context.transaction.abort(err);
 	            }, util.timeout);
-
+	
 	            return request;
 	        }
 	        function exception(context, err, timestamp){
@@ -1193,28 +1193,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            context.__actions.push(timestamp);
 	            var request = new IDBRequest(this, this.transaction);
 	            var internalKey = key;
-
+	
 	            if(context.transaction.__objectStoreNames.indexOf(context.name) == -1){
 	                exception(context, {
 	                    name: "InvalidStateError"
 	                    // TODO Add message
 	                }, timestamp);
 	            }
-
+	
 	            if(context.transaction.mode == IDBTransactionMode.readonly){
 	                exception(context, {
 	                    name: "ReadOnlyError"
 	                    // TODO Add message
 	                }, timestamp);
 	            }
-
+	
 	            if(!context.keyPath && !key && !context.autoIncrement || context.keyPath && (key || !data[context.keyPath] && !context.autoIncrement || !util.isObject(data))) {
 	                exception(context, {
 	                    name: "DataError"
 	                    // TODO Add message
 	                }, timestamp);
 	            }
-
+	
 	            if(context.autoIncrement){
 	                if(!(util.isNumber(internalKey) && internalKey > context.__latestKey))
 	                {
@@ -1223,7 +1223,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        util.setPropertyValue(data, context.keyPath, internalKey);
 	                    }
 	                }
-
+	
 	                if(internalKey > 9007199254740992)
 	                {
 	                    return error(context, request, {
@@ -1231,20 +1231,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        // TODO Add message
 	                    });
 	                }
-
+	
 	                context.__latestKey = internalKey;
 	            }
 	            else if(context.keyPath){
 	                internalKey = util.getPropertyValue(data, context.keyPath);
 	            }
-
+	
 	            if(!util.isValidKey(internalKey)) {
 	                exception(context, {
 	                    name: "DataError"
 	                    // TODO Add message
 	                }, timestamp);
 	            }
-
+	
 	            if(noOverWrite && context.__data[internalKey])
 	            {
 	                return error(context, request, {
@@ -1252,24 +1252,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    // TODO Add message
 	                });
 	            }
-
+	
 	            if(util.containsFunction(data)){
 	                exception(context, {
 	                    name: "DataCloneError"
 	                    // TODO Add message
 	                }, timestamp);
 	            }
-
+	
 	            // Check index constraints
 	            for (var i = 0; i < context._indexes.length; i++) {
 	                var index = context._indexes[i];
 	                var indexKey = util.getPropertyValue(data, index.keyPath);
-
+	
 	                // If no value is found using the index keyPath, ignore
 	                if(!indexKey){
 	                    continue;
 	                }
-
+	
 	                if(index.multiEntry && util.isArray(indexKey)){
 	                    var keys = {};
 	                    for (var l = 0; l < indexKey.length; l++) {
@@ -1297,11 +1297,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }
-
+	
 	            // Set index data
 	            for (var ii = 0; ii < context._indexes.length; ii++) {
 	                var idx = context._indexes[ii];
-
+	
 	                // If noOverWrite is false remove all existing records in the index for the key
 	                if(!noOverWrite){
 	                    for (var j = 0; j < idx.__data.length; j++) {
@@ -1312,14 +1312,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        }
 	                    }
 	                }
-
+	
 	                var idxKey = util.getPropertyValue(data, idx.keyPath);
-
+	
 	                // If no value is found using the index keyPath, ignore
 	                if(!idxKey){
 	                    continue;
 	                }
-
+	
 	                if(idx.multiEntry && util.isArray(idxKey)){
 	                    var kys = {};
 	                    for (var m = 0; m < idxKey.length; m++) {
@@ -1343,32 +1343,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    idx.__data[idxKey].push({ key: key, data: data });
 	                }
 	            }
-
+	
 	            if(noOverWrite && !context.__data[internalKey])
 	            {
 	                context.__keys.push(internalKey);
 	            }
 	            // set IDBObjectStore data
 	            context.__data[internalKey] = data;
-
+	
 	            setTimeout(function () {
 	                request.__success(internalKey);
 	                context.__actions.splice(context.__actions.indexOf(timestamp),1);
 	            }, util.timeout);
-
+	
 	            return request;
 	        }
 	        function finished (){
 	            return this.__actions.length === 0;
 	        }
-
+	
 	        function Clone(context){
 	            var clone = new IDBObjectStore();
 	            clone.name = util.clone(this.name, context);
 	            clone.keyPath = util.clone(this.keyPath, context);
 	            clone.autoIncrement = util.clone(this.autoIncrement, context);
 	            clone.indexNames = util.clone(this.indexNames, context);
-
+	
 	            clone._indexes = util.clone(this._indexes, context);
 	            clone.__data = util.clone(this.__data, context);
 	            clone.__keys = util.clone(this.__keys, context);
@@ -1376,10 +1376,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            clone.__actions = [];
 	            clone.__latestKey = util.clone(this.__latestKey, context);
 	            clone.__id = util.clone(this.__id, context);
-
+	
 	            return clone;
 	        }
-
+	
 	        return {
 	            add: Add,
 	            get: Get,
@@ -1395,7 +1395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            __clone: Clone
 	        };
 	    }();
-
+	
 	    return IDBObjectStore;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1415,17 +1415,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util){
 	    var IDBIndex = function(name, keyPath, params, objectStore){
 	        if(arguments.length === 0) return; // Clone
-
+	
 	        this.name = name;
 	        this.keyPath = keyPath;
 	        this.multiEntry = params ? params.multiEntry : undefined;
 	        this.unique = params ? params.unique : undefined;
-
+	
 	        this.objectStore = objectStore;
 	        this.__data = {};
 	        this.__id = util.guid();
 	    };
-
+	
 	    IDBIndex.prototype = function (){
 	        function Get(key){
 	            // TODO: Implement
@@ -1442,7 +1442,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function Count(key){
 	            // TODO: Implement
 	        }
-
+	
 	        function Clone(context){
 	            var clone = new IDBIndex();
 	            clone.name = util.clone(this.name, context);
@@ -1450,13 +1450,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            clone.multiEntry = util.clone(this.multiEntry, context);
 	            clone.unique = util.clone(this.unique, context);
 	            clone.objectStore = util.clone(this.objectStore, context);
-
+	
 	            clone.__id = util.clone(this.__id, context);
 	            clone.__data = util.clone(this.__data, context);
-
+	
 	            return clone;
 	        }
-
+	
 	        return {
 	            count: Count,
 	            get: Get,
@@ -1466,7 +1466,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            __clone: Clone
 	        };
 	    }();
-
+	
 	    return IDBIndex;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1482,13 +1482,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	], __WEBPACK_AMD_DEFINE_RESULT__ = function(IEvent){
 	    var IDBVersionChangeEvent = function(type, metadata){
 	        IEvent.call(this, type, metadata);
-
+	
 	        this.newVersion = metadata.newVersion;
 	        this.oldVersion = metadata.oldVersion;
 	    };
-
+	
 	    IDBVersionChangeEvent.prototype = IEvent.prototype;
-
+	
 	    return IDBVersionChangeEvent;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1505,7 +1505,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var IDBEnviroment = function(){
 	        this.indexedDB = new IDBFactory();
 	    };
-
+	
 	    return IDBEnviroment;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1531,26 +1531,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util){
 	    var IDBFactory = function(){
 	    };
-
+	
 	    IDBFactory.prototype = (function(){
 	        function Open (name, version) {
 	            var db,
 	                openDBRequest = new IDBOpenDBRequest();
-
+	
 	            db = DataProvider.getDatabase(name);
-
+	
 	            if(!db)
 	            {
 	                if(!version) {
 	                    version = 1;
 	                }
 	                db = new Database(name);
-
+	
 	                DataProvider.setDatabase(name, db);
 	            }
-
+	
 	            var connection = new IDBDatabase(db);
-
+	
 	            if(version && connection.version > version){
 	                setTimeout(function(){
 	                    openDBRequest.__error({
@@ -1576,26 +1576,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        function DeleteDatabase(name){
 	            var request = new IDBOpenDBRequest(null, null);
-
+	
 	            DataProvider.removeDatabase(name);
-
+	
 	            setTimeout(function(){
 	                request.__success();
 	            }, util.timeout);
-
+	
 	            return request;
 	        }
 	        function Cmp(first, second) {
 	            return util.cmp(first, second);
 	        }
-
+	
 	        return {
 	            open: Open,
 	            deleteDatabase: DeleteDatabase,
 	            cmp: Cmp
 	        };
 	    })();
-
+	
 	    return IDBFactory;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1617,16 +1617,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util){
 	    var IDBOpenDBRequest = function(){
 	        IDBRequest.call(this, null, null);
-
+	
 	            this.onblocked = null;
 	            this.onupgradeneeded = null;
 	        };
-
+	
 	    IDBOpenDBRequest.prototype = IDBRequest.prototype;
-
+	
 	    IDBOpenDBRequest.prototype.__blocked = function (newVersion, oldVersion){
 	        this.readyState = IDBRequestReadyState.done;
-
+	
 	        if (util.isFunction(this.onblocked)) {
 	            this.onblocked(new IVersionChangeEvent("blocked", {target: this, newVersion: null, oldVersion: oldVersion}));
 	        }
@@ -1635,26 +1635,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.result = result;
 	        this.transaction = transaction;
 	        this.readyState = IDBRequestReadyState.done;
-
+	
 	        if (util.isFunction(this.onupgradeneeded)) {
 	            this.onupgradeneeded(new IVersionChangeEvent("upgradeneeded", {target: this, newVersion: newVersion, oldVersion: oldVersion, returnValue: true}));
 	            transaction.__commit();
 	        }
 	    };
-
+	
 	    IDBOpenDBRequest.prototype.__clone = function(context) {
 	        var clone = new IDBOpenDBRequest();
-
+	
 	        clone.error = util.clone(this.error, context);
 	        clone.result = util.clone(this.result, context);
 	        clone.source = util.clone(this.source, context);
 	        clone.transaction = util.clone(this.transaction, context);
 	        clone.readyState = util.clone(this.readyState, context);
 	        clone.__id = util.clone(this.__id, context);
-
+	
 	        return clone;
 	    };
-
+	
 	    return IDBOpenDBRequest;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1685,7 +1685,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.objectStores = util.clone(objectStores);
 	        this.objectStoreNames = util.clone(objectStoreNames);
 	    };
-
+	
 	    Snapshot.prototype = (function(){
 	        function AddObjectStore(objectStore){
 	            this.objectStores.push(objectStore);
@@ -1700,13 +1700,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            this.objectStoreNames.splice(this.objectStoreNames.indexOf(objectStoreName), 1);
 	        }
-
+	
 	        return {
 	            addObjectStore: AddObjectStore,
 	            removeObjectStore: RemoveObjectStore
 	        };
 	    })();
-
+	
 	    Database.prototype = (function(){
 	        function AddConnection(connection){
 	            this.connections.push(connection);
@@ -1725,7 +1725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    this.connections[i].__versionchange(version);
 	                }
 	            }
-
+	
 	            upgradeInternal(this, openDBRequest, connection.version, version, connection);
 	        }
 	        function TakeSnapshot(){
@@ -1735,19 +1735,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.objectStores = util.clone(snapshot.objectStores);
 	            this.objectStoreNames = util.clone(snapshot.objectStoreNames);
 	        }
-
+	
 	        function upgradeInternal(db, openDBRequest, currentVersion, version, connection) {
 	            if(db.connections.length > 0 && db.connections[0].__connectionId !== connection.__connectionId){
 	                openDBRequest.__blocked(null, connection.version);
 	                setTimeout(upgradeInternal, 10, db, openDBRequest, currentVersion, version, connection);
 	                return;
 	            }
-
+	
 	            connection.version = version;
 	            db.version = version;
-
+	
 	            openDBRequest.__upgradeneeded(connection, connection.transaction(db.objectStoreNames, IDBTransactionMode.versionchange), version, currentVersion);
-
+	
 	            setTimeout(function () {
 	                if(openDBRequest.transaction.__aborted) {
 	                    openDBRequest.__error({
@@ -1762,7 +1762,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }, util.timeout);
 	        }
-
+	
 	        return {
 	            addConnection: AddConnection,
 	            removeConnection: RemoveConnection,
@@ -1771,7 +1771,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            upgrade: Upgrade
 	        };
 	    })();
-
+	
 	    return Database;
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1785,30 +1785,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function(){
 	    var DataProvider = function(){
 	    };
-
+	
 	    DataProvider.prototype = (function(){
 	        var dbs = {};
-
+	
 	        function GetDatabase(name){
 	            return dbs[name];
 	        }
-
+	
 	        function SetDatabase(name, database){
 	            dbs[name] = database;
 	        }
-
+	
 	        function RemoveDatabase(name){
 	            dbs[name] = undefined;
 	            delete dbs[name];
 	        }
-
+	
 	        return {
 	            getDatabase: GetDatabase,
 	            setDatabase: SetDatabase,
 	            removeDatabase: RemoveDatabase
 	        };
 	    })();
-
+	
 	    return new DataProvider();
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 
@@ -1827,3 +1827,4 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ])
 });
 ;
+//# sourceMappingURL=indexedDBmock.js.map

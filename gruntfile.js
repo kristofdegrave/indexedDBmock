@@ -2,6 +2,10 @@
  * Created by Kristof on 12/02/2015.
  */
 module.exports = function(grunt) {
+    require("matchdep").filterAll("grunt-*").forEach(grunt.loadNpmTasks);
+    var webpack = require("webpack");
+    var webpackConfig = require("./webpack.config.js");
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         uglify: {
@@ -11,7 +15,7 @@ module.exports = function(grunt) {
             },
             dist: {
                 files: {
-                    'dist/<%= pkg.name %>.min.js': ['<%= webpack.mock.output.path + webpack.mock.output.filename %>']
+                    'dist/<%= pkg.name %>.min.js': ['dist/<%= pkg.name %>.js']
                 }
             }
         },
@@ -30,10 +34,6 @@ module.exports = function(grunt) {
                     module: true
                 }
             }
-        },
-        watch: {
-            files: ['<%= jshint.files %>'],
-            tasks: ['jshint', 'qunit']
         },
         bower: {
             install: {
@@ -69,32 +69,43 @@ module.exports = function(grunt) {
             }
         },
         webpack: {
-            mock: {
-                // webpack options
-                entry: "./src/mock",
-                output: {
-                    path: "dist/",
-                    filename: "indexedDBmock.js",
-                    library: "mock",
-                    libraryTarget: "umd"
-                },
-                resolve: {
-                    extensions: ['.js'],
-                    root: './src'
+            options: webpackConfig,
+            "build-dev": {
+                devtool: "sourcemap",
+                debug: true
+            }
+        },
+        "webpack-dev-server": {
+            options: {
+                webpack: webpackConfig,
+                publicPath: "/" + webpackConfig.output.publicPath
+            },
+            start: {
+                keepAlive: true,
+                webpack: {
+                    devtool: "eval",
+                    debug: true
                 }
+            }
+        },
+        watch: {
+            files: ["src/**/*"],
+            tasks: ["jshint", "webpack:build-dev"],
+            options: {
+                spawn: false
             }
         }
     });
 
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-qunit');
-    grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-bower-task');
-    grunt.loadNpmTasks('grunt-nuget');
-    grunt.loadNpmTasks('grunt-release');
-    grunt.loadNpmTasks('grunt-bump');
-    grunt.loadNpmTasks('grunt-webpack');
+    //grunt.loadNpmTasks('grunt-contrib-uglify');
+    //grunt.loadNpmTasks('grunt-contrib-jshint');
+    //grunt.loadNpmTasks('grunt-contrib-qunit');
+    //grunt.loadNpmTasks('grunt-contrib-watch');
+    //grunt.loadNpmTasks('grunt-bower-task');
+    //grunt.loadNpmTasks('grunt-nuget');
+    //grunt.loadNpmTasks('grunt-release');
+    //grunt.loadNpmTasks('grunt-bump');
+    //grunt.loadNpmTasks('grunt-webpack');
 
 
 
