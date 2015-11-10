@@ -30,8 +30,6 @@ define('IDBFactory', [
                     version = 1;
                 }
                 db = new Database(name);
-
-                DataProvider.setDatabase(name, db);
             }
 
             var connection = new IDBDatabase(db);
@@ -47,7 +45,13 @@ define('IDBFactory', [
             else {
                 if (version && connection.version < version) {
                     setTimeout(function () {
-                        db.upgrade(openDBRequest, version, connection);
+                        db.upgrade(openDBRequest, version, connection, function(request, db){
+                            DataProvider.setDatabase(db.name, db);
+
+                            var newConnection = new IDBDatabase(db);
+                            db.addConnection(newConnection);
+                            request.__success(newConnection);
+                        });
                     }, util.timeout);
                 }
                 else {
@@ -60,15 +64,23 @@ define('IDBFactory', [
             return openDBRequest;
         }
         function DeleteDatabase(name){
-            var request = new IDBOpenDBRequest(null, null);
+            var openDBRequest = new IDBOpenDBRequest(null, null);
+            var db = DataProvider.getDatabase(name);
 
-            DataProvider.removeDatabase(name);
+            setTimeout(function () {
+                if(db){
+                    db.upgrade(openDBRequest, null, new IDBDatabase(db), function(request, db){
+                        DataProvider.removeDatabase(db.name);
+                        request.__success();
+                    });
+                }
+                else{
+                    openDBRequest.__success();
+                }
 
-            setTimeout(function(){
-                request.__success();
             }, util.timeout);
 
-            return request;
+            return openDBRequest;
         }
         function Cmp(first, second) {
             return util.cmp(first, second);

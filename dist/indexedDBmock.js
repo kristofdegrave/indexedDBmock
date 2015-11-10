@@ -1545,8 +1545,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    version = 1;
 	                }
 	                db = new Database(name);
-	
-	                DataProvider.setDatabase(name, db);
 	            }
 	
 	            var connection = new IDBDatabase(db);
@@ -1562,7 +1560,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            else {
 	                if (version && connection.version < version) {
 	                    setTimeout(function () {
-	                        db.upgrade(openDBRequest, version, connection);
+	                        db.upgrade(openDBRequest, version, connection, function(request, db){
+	                            DataProvider.setDatabase(db.name, db);
+	
+	                            var newConnection = new IDBDatabase(db);
+	                            db.addConnection(newConnection);
+	                            request.__success(newConnection);
+	                        });
 	                    }, util.timeout);
 	                }
 	                else {
@@ -1575,15 +1579,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return openDBRequest;
 	        }
 	        function DeleteDatabase(name){
-	            var request = new IDBOpenDBRequest(null, null);
+	            var openDBRequest = new IDBOpenDBRequest(null, null);
+	            var db = DataProvider.getDatabase(name);
 	
-	            DataProvider.removeDatabase(name);
+	            setTimeout(function () {
+	                if(db){
+	                    db.upgrade(openDBRequest, null, new IDBDatabase(db), function(request, db){
+	                        DataProvider.removeDatabase(db.name);
+	                        request.__success();
+	                    });
+	                }
+	                else{
+	                    openDBRequest.__success();
+	                }
 	
-	            setTimeout(function(){
-	                request.__success();
 	            }, util.timeout);
 	
-	            return request;
+	            return openDBRequest;
 	        }
 	        function Cmp(first, second) {
 	            return util.cmp(first, second);
@@ -1719,14 +1731,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
-	        function Upgrade(openDBRequest, version, connection){
+	        function Upgrade(openDBRequest, version, connection, successCallback, failCallback){
 	            for (var i = 0; i < this.connections.length; i++) {
 	                if (this.connections[i].__connectionId !== connection.__connectionId) {
 	                    this.connections[i].__versionchange(version);
 	                }
 	            }
 	
-	            upgradeInternal(this, openDBRequest, connection.version, version, connection);
+	            upgradeInternal(this, openDBRequest, connection.version, version, connection, successCallback, failCallback);
 	        }
 	        function TakeSnapshot(){
 	           return new Snapshot(this.objectStores, this.objectStoreNames);
@@ -1736,31 +1748,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.objectStoreNames = util.clone(snapshot.objectStoreNames);
 	        }
 	
-	        function upgradeInternal(db, openDBRequest, currentVersion, version, connection) {
+	        function upgradeInternal(db, openDBRequest, currentVersion, version, connection, successCallback, failCallback) {
 	            if(db.connections.length > 0 && db.connections[0].__connectionId !== connection.__connectionId){
 	                openDBRequest.__blocked(null, connection.version);
-	                setTimeout(upgradeInternal, 10, db, openDBRequest, currentVersion, version, connection);
+	                setTimeout(upgradeInternal, 10, db, openDBRequest, currentVersion, version, connection, successCallback, failCallback);
 	                return;
 	            }
 	
-	            connection.version = version;
-	            db.version = version;
+	            if(version !== null) { // Delete request
+	                connection.version = version;
+	                db.version = version;
+	                openDBRequest.__upgradeneeded(connection, connection.transaction(db.objectStoreNames, IDBTransactionMode.versionchange), version, currentVersion);
+	            }
 	
-	            openDBRequest.__upgradeneeded(connection, connection.transaction(db.objectStoreNames, IDBTransactionMode.versionchange), version, currentVersion);
-	
-	            setTimeout(function () {
-	                if(openDBRequest.transaction.__aborted) {
-	                    openDBRequest.__error({
+	            setTimeout(function (_db, _openDBRequest, _successCallback, _failCallback) {
+	                if(_openDBRequest.transaction && _openDBRequest.transaction.__aborted) {
+	                    _openDBRequest.__error({
 	                        name: "AbortError",
 	                        message: "The transaction was aborted."
 	                    }, 8);
+	                    if(util.isFunction(_failCallback)) {
+	                        _failCallback(_openDBRequest, _db);
+	                    }
 	                }
 	                else {
-	                    var newConnection = new IDBDatabase(db);
-	                    db.addConnection(newConnection);
-	                    openDBRequest.__success(newConnection);
+	                    if(util.isFunction(_successCallback)) {
+	                        _successCallback(_openDBRequest, _db);
+	                    }
 	                }
-	            }, util.timeout);
+	            }, util.timeout, db, openDBRequest, successCallback, failCallback);
 	        }
 	
 	        return {
