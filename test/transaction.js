@@ -549,3 +549,4 @@ QUnit.test("Opening 2 write transaction with seperate scope", function (assert) 
         };
     }, done, assert);
 });*/
+// TODO: Test isolation of scopes

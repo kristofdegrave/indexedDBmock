@@ -375,7 +375,109 @@ QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert
                 try{
                     var getRequest = objectstore.get(KeyRange.upperBound(1, false));
                     getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "No data Data");
+                        assert.deepEqual(e.target.result, addData, "Data");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.ok(false, "Get error");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    assert.equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Retrieving data - key range only", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.get(KeyRange.only(1));
+                    getRequest.onsuccess = function (e){
+                        assert.deepEqual(e.target.result, addData, "Data");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.ok(false, "Get error");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    assert.equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Retrieving data - key range between", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.get(KeyRange.bound(1,5, false, false));
+                    getRequest.onsuccess = function (e){
+                        assert.deepEqual(e.target.result, addData, "Data");
                     };
                     getRequest.onerror = function (e){
                         assert.ok(false, "Get error");
