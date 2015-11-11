@@ -413,4 +413,56 @@ QUnit.test("Counting data - non key range", function (assert) {
         };
     }, done, assert);
 });
+QUnit.test("Retrieving data - key invalid", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+    var key = 1;
+
+    initionalSituationObjectStoreNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var getRequest = objectstore.count(function(){});
+                    getRequest.onsuccess = function (e){
+                        assert.ok(false, "Data retrieved");
+                    };
+                    getRequest.onerror = function (e){
+                        assert.ok(false, "Get error");
+                    };
+                }
+                catch (ex){
+                    assert.equal(ex.name, "DataError", ex.name);
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    assert.equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
 

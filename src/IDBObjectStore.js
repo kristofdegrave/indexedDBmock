@@ -38,6 +38,13 @@ define('IDBObjectStore', [
             this.__actions.push(timestamp);
 
             if(!(key instanceof IDBKeyRange)){
+                if(!util.isValidKey(key)){
+                    exception(this, {
+                        name: "DataError"
+                        // TODO Add message
+                    }, timestamp);
+                }
+
                 key = IDBKeyRange.only(key);
             }
 
@@ -96,6 +103,13 @@ define('IDBObjectStore', [
 
             if(key) {
                 if(!(key instanceof IDBKeyRange)){
+                    if(!util.isValidKey(key)){
+                        exception(this, {
+                            name: "DataError"
+                            // TODO Add message
+                        }, timestamp);
+                    }
+
                     key = IDBKeyRange.only(key);
                 }
                 count = 0;
