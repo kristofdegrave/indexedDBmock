@@ -1048,19 +1048,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var timestamp = (new Date()).getTime();
 	            var request = new IDBRequest(this, this.transaction);
 	            var data;
+	            var internalKey = key;
 	
 	            this.__actions.push(timestamp);
-	
-	            if(!(key instanceof IDBKeyRange)){
-	                if(!util.isValidKey(key)){
-	                    exception(this, {
-	                        name: "DataError"
-	                        // TODO Add message
-	                    }, timestamp);
-	                }
-	
-	                key = IDBKeyRange.only(key);
-	            }
 	
 	            if(this.transaction.db.objectStoreNames.indexOf(this.name) == -1){
 	                error(this, request, {
@@ -1069,13 +1059,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 	            }
 	
-	            if(key.upper === key.lower){
-	                data = this.__data[key.lower];
+	            if(!(internalKey instanceof IDBKeyRange)){
+	                if(!util.isValidKey(internalKey)){
+	                    exception(this, {
+	                        name: "DataError"
+	                        // TODO Add message
+	                    }, timestamp);
+	                }
+	
+	                internalKey = IDBKeyRange.only(internalKey);
+	            }
+	
+	            if(internalKey.upper === internalKey.lower){
+	                data = this.__data[internalKey.lower];
 	            }
 	            else{
 	                var keysSorted = this.__keys.sort(util.cmp); // todo extend with all types of keys
 	                for (var i = 0; i < keysSorted.length; i++) {
-	                    if(key.__inRange(keysSorted[i])){
+	                    if(internalKey.__inRange(keysSorted[i])){
 	                        data = this.__data[keysSorted[i]];
 	                        break;
 	                    }
@@ -1096,15 +1097,69 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return persist(this, data, key, true);
 	        }
 	        function Delete(key){
-	            //TODO Implement
+	            var timestamp = (new Date()).getTime();
+	            this.__actions.push(timestamp);
+	            var request = new IDBRequest(this, this.transaction);
+	            var internalKey = key;
+	
+	            if(this.transaction.__objectStoreNames.indexOf(this.name) == -1){
+	                exception(this, {
+	                    name: "InvalidStateError"
+	                    // TODO Add message
+	                }, timestamp);
+	            }
+	
+	            if(this.transaction.mode == IDBTransactionMode.readonly){
+	                exception(this, {
+	                    name: "ReadOnlyError"
+	                    // TODO Add message
+	                }, timestamp);
+	            }
+	
+	            if(!internalKey){
+	                exception(this, {
+	                    name: "TypeError"
+	                    // TODO Add message
+	                }, timestamp);
+	            }
+	
+	            if(!(internalKey instanceof IDBKeyRange)){
+	                if(!util.isValidKey(internalKey)){
+	                    exception(this, {
+	                        name: "DataError"
+	                        // TODO Add message
+	                    }, timestamp);
+	                }
+	
+	                internalKey = IDBKeyRange.only(internalKey);
+	            }
+	
+	            for (var i = (this.__keys.length - 1); i >= 0; i--) {
+	                if (internalKey.__inRange(this.__keys[i])) {
+	                    // delete data
+	                    this.__data[this.__keys[i]] = undefined;
+	                    delete this.__data[this.__keys[i]];
+	                    this.__keys.splice(i, 1);
+	                }
+	            }
+	
+	            setTimeout(function (context) {
+	                request.__success();
+	                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+	            }, util.timeout, this);
+	
+	            return request;
 	        }
 	        function Clear(){
 	            // TODO Implement
 	        }
 	        function Count(key){
+	            // TODO use cursor functionality
+	
 	            var timestamp = (new Date()).getTime();
 	            var request = new IDBRequest(this, this.transaction);
 	            var count;
+	            var internalKey = key;
 	
 	            this.__actions.push(timestamp);
 	
@@ -1115,21 +1170,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 	            }
 	
-	            if(key) {
-	                if(!(key instanceof IDBKeyRange)){
-	                    if(!util.isValidKey(key)){
+	            if(internalKey) {
+	                if(!(internalKey instanceof IDBKeyRange)){
+	                    if(!util.isValidKey(internalKey)){
 	                        exception(this, {
 	                            name: "DataError"
 	                            // TODO Add message
 	                        }, timestamp);
 	                    }
 	
-	                    key = IDBKeyRange.only(key);
+	                    internalKey = IDBKeyRange.only(internalKey);
 	                }
 	                count = 0;
 	
 	                for (var i = 0; i < this.__keys.length; i++) {
-	                    if (key.__inRange(this.__keys[i])) {
+	                    if (internalKey.__inRange(this.__keys[i])) {
 	                        count++;
 	                    }
 	                }
@@ -1239,7 +1294,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        function persist(context, data, key, noOverWrite){
 	            var timestamp = (new Date()).getTime();
 	            context.__actions.push(timestamp);
-	            var request = new IDBRequest(this, this.transaction);
+	            var request = new IDBRequest(context, context.transaction);
 	            var internalKey = key;
 	
 	            if(context.transaction.__objectStoreNames.indexOf(context.name) == -1){
