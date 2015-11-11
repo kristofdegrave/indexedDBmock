@@ -1108,7 +1108,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 	            }
 	
-	            if(key && key instanceof IDBKeyRange) {
+	            if(key) {
+	                if(!(key instanceof IDBKeyRange)){
+	                    key = IDBKeyRange.only(key);
+	                }
 	                count = 0;
 	
 	                for (var i = 0; i < this.__keys.length; i++) {
