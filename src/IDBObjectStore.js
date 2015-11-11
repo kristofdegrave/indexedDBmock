@@ -81,7 +81,38 @@ define('IDBObjectStore', [
             // TODO Implement
         }
         function Count(key){
-            // TODO Implement
+            var timestamp = (new Date()).getTime();
+            var request = new IDBRequest(this, this.transaction);
+            var count;
+
+            this.__actions.push(timestamp);
+
+            if(this.transaction.db.objectStoreNames.indexOf(this.name) == -1){
+                error(this, request, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
+            }
+
+            if(key && key instanceof IDBKeyRange) {
+                count = 0;
+
+                for (var i = 0; i < this.__keys.length; i++) {
+                    if (key.__inRange(this.__keys[i])) {
+                        count++;
+                    }
+                }
+            }
+            else{
+                count = this.__keys.length;
+            }
+
+            setTimeout(function (context) {
+                request.__success(count);
+                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+            }, util.timeout, this);
+
+            return request;
         }
         function OpenCursor(key, direction){
             // TODO Implement

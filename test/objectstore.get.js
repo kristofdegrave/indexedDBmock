@@ -514,4 +514,3 @@ QUnit.test("Retrieving data - key range between", function (assert) {
         };
     }, done, assert);
 });
-// TODO Add support for key ranges
