@@ -1140,6 +1140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    this.__data[this.__keys[i]] = undefined;
 	                    delete this.__data[this.__keys[i]];
 	                    this.__keys.splice(i, 1);
+	                    // TODO Delete data from index
 	                }
 	            }
 	
@@ -1151,7 +1152,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return request;
 	        }
 	        function Clear(){
-	            // TODO Implement
+	            var timestamp = (new Date()).getTime();
+	            this.__actions.push(timestamp);
+	            var request = new IDBRequest(this, this.transaction);
+	
+	            if(this.transaction.__objectStoreNames.indexOf(this.name) == -1){
+	                exception(this, {
+	                    name: "InvalidStateError"
+	                    // TODO Add message
+	                }, timestamp);
+	            }
+	
+	            if(this.transaction.mode == IDBTransactionMode.readonly){
+	                exception(this, {
+	                    name: "ReadOnlyError"
+	                    // TODO Add message
+	                }, timestamp);
+	            }
+	
+	            this.data = {};
+	            this.__keys = [];
+	            // TODO Remove data from index
+	
+	            setTimeout(function (context) {
+	                request.__success();
+	                context.__actions.splice(context.__actions.indexOf(timestamp),1);
+	            }, util.timeout, this);
+	
+	            return request;
 	        }
 	        function Count(key){
 	            // TODO use cursor functionality
