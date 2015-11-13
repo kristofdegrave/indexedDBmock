@@ -1035,7 +1035,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.indexNames = [];
 	        this.transaction = transaction;
 	
-	        this._indexes = [];
+	        this.__indexes = [];
 	        this.__data = {};
 	        this.__keys = [];
 	        this.__actions = [];
@@ -1173,6 +1173,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.data = {};
 	            this.__keys = [];
 	            // TODO Remove data from index
+	            for (var i = 0; i < context.__indexes.length; i++) {
+	                context.__indexes[i].__data = {};
+	            }
 	
 	            setTimeout(function (context) {
 	                request.__success();
@@ -1256,7 +1259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // TODO: Check valid key path?
 	
 	            var index = new IDBIndex(name, keyPath, parameters, this);
-	            this._indexes.push(index);
+	            this.__indexes.push(index);
 	            this.indexNames.push(name);
 	
 	            return index;
@@ -1282,19 +1285,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.indexNames.splice(indexIndex, 1);
 	            }
 	
-	            for(var j = 0; j < this._indexes.length; j++)
+	            for(var j = 0; j < this.__indexes.length; j++)
 	            {
-	                if(this._indexes[j].name === name){
-	                    this._indexes.splice(j, 1);
+	                if(this.__indexes[j].name === name){
+	                    this.__indexes.splice(j, 1);
 	                }
 	            }
 	        }
 	        function Index(name) {
-	            for(var j = 0; j < this._indexes.length; j++)
+	            for(var j = 0; j < this.__indexes.length; j++)
 	            {
-	                if(this._indexes[j].name === name){
-	                    //this._indexes[j].objectStore = this;
-	                    return this._indexes[j];
+	                if(this.__indexes[j].name === name){
+	                    //this.__indexes[j].objectStore = this;
+	                    return this.__indexes[j];
 	                }
 	            }
 	
@@ -1392,8 +1395,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	
 	            // Check index constraints
-	            for (var i = 0; i < context._indexes.length; i++) {
-	                var index = context._indexes[i];
+	            for (var i = 0; i < context.__indexes.length; i++) {
+	                var index = context.__indexes[i];
 	                var indexKey = util.getPropertyValue(data, index.keyPath);
 	
 	                // If no value is found using the index keyPath, ignore
@@ -1430,8 +1433,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	
 	            // Set index data
-	            for (var ii = 0; ii < context._indexes.length; ii++) {
-	                var idx = context._indexes[ii];
+	            for (var ii = 0; ii < context.__indexes.length; ii++) {
+	                var idx = context.__indexes[ii];
 	
 	                // If noOverWrite is false remove all existing records in the index for the key
 	                if(!noOverWrite){
@@ -1500,7 +1503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            clone.autoIncrement = util.clone(this.autoIncrement, context);
 	            clone.indexNames = util.clone(this.indexNames, context);
 	
-	            clone._indexes = util.clone(this._indexes, context);
+	            clone.__indexes = util.clone(this.__indexes, context);
 	            clone.__data = util.clone(this.__data, context);
 	            clone.__keys = util.clone(this.__keys, context);
 	            //TODO Clone needed?

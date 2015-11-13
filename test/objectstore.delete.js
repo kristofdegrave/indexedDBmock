@@ -637,3 +637,5 @@ QUnit.test("Deleting data - ReadOnly transaction", function (assert) {
         };
     }, done, assert);
 });
+
+// TODO Add test with indexes check if data is present

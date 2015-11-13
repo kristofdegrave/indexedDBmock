@@ -1257,3 +1257,5 @@ QUnit.test("Adding data with existing index key - unique multientry index ", fun
     }, done, assert);
     });
 // TODO: test adding data to a deleted objectstore
+
+// TODO Add test with indexes check if data is present
