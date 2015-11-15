@@ -126,7 +126,20 @@ define('IDBObjectStore', [
                     this.__data[this.__keys[i]] = undefined;
                     delete this.__data[this.__keys[i]];
                     this.__keys.splice(i, 1);
-                    // TODO Delete data from index
+
+                    // Delete data from index
+                    // TODO: find more effictient way
+                    for (var ii = 0; ii < this.__indexes.length; ii++) {
+                        var idx = this.__indexes[ii];
+
+                        for (var j = 0; j < idx.__data.length; j++) {
+                            for (var k = 0; k < idx.__data[j].length; k++) {
+                                if (idx.__data[j][k].key == this.__keys[i]) {
+                                    idx.__data[j].splice(k, 1);
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -159,8 +172,8 @@ define('IDBObjectStore', [
             this.data = {};
             this.__keys = [];
             // TODO Remove data from index
-            for (var i = 0; i < context.__indexes.length; i++) {
-                context.__indexes[i].__data = {};
+            for (var i = 0; i < this.__indexes.length; i++) {
+                this.__indexes[i].__data = {};
             }
 
             setTimeout(function (context) {
@@ -426,7 +439,7 @@ define('IDBObjectStore', [
                 if(!noOverWrite){
                     for (var j = 0; j < idx.__data.length; j++) {
                         for (var k = 0; k < idx.__data[j].length; k++) {
-                            if(idx.__data[j][k].key == key){
+                            if(idx.__data[j][k].key == internalKey){
                                 idx.__data[j].splice(k,1);
                             }
                         }
@@ -448,7 +461,7 @@ define('IDBObjectStore', [
                             if(!idx.__data[idxKey[m]]){
                                 idx.__data[idxKey[m]] = [];
                             }
-                            idx.__data[idxKey[m]].push({ key: key, data: data });
+                            idx.__data[idxKey[m]].push({ key: internalKey, data: data });
                         }
                     }
                 }
@@ -460,7 +473,7 @@ define('IDBObjectStore', [
                     if(!idx.__data[idxKey]){
                         idx.__data[idxKey] = [];
                     }
-                    idx.__data[idxKey].push({ key: key, data: data });
+                    idx.__data[idxKey].push({ key: internalKey, data: data });
                 }
             }
 
