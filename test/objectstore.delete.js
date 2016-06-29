@@ -556,7 +556,7 @@ QUnit.test("Deleting data - no key", function (assert) {
                     };
                 }
                 catch (ex){
-                    assert.equal(ex.name, "TypeError", ex.name);
+                    assert.equal(ex.name, "DataError", ex.name);
                 }
 
                 transaction.oncomplete = function (e){
