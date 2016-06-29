@@ -718,7 +718,7 @@ QUnit.test("Putting data with existing internal key", function (assert) {
             assert.ok(false, "Database error");
             done();
         };
-    });
+    }, done, assert);
     });
 QUnit.test("Putting data with invalid key", function (assert) {
     var done = assert.async();
@@ -1258,3 +1258,4 @@ QUnit.test("Putting data with existing index key - unique multientry index ", fu
     }, done, assert);
     });
 // TODO: test adding data to a deleted objectstore
+// TODO Add test with indexes check if data is present

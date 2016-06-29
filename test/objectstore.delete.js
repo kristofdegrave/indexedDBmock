@@ -2,10 +2,10 @@
  * Created by Kristof on 29/03/2015.
  */
 
-QUnit.module("Objectstore - Get");
-QUnit.test("Retrieving data - no data present for key", function (assert) {
+QUnit.module("Objectstore - Delete");
+QUnit.test("Deleting data - no data present for key", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
     var key = 1;
 
     initionalSituationObjectStoreNoAutoIncrement(function () {
@@ -16,16 +16,26 @@ QUnit.test("Retrieving data - no data present for key", function (assert) {
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(key);
-                    getRequest.onsuccess = function (e){
+                    var deleteRequest = objectstore.delete(key);
+                    deleteRequest.onsuccess = function (e){
                         assert.equal(e.target.result, undefined, "Data undefined");
+
+                        var countRequest = objectstore.count(key);
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -55,7 +65,7 @@ QUnit.test("Retrieving data - no data present for key", function (assert) {
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - external key", function (assert) {
+QUnit.test("Deleting data - key", function (assert) {
     var done = assert.async();
     assert.expect(1);
 
@@ -67,16 +77,16 @@ QUnit.test("Retrieving data - external key", function (assert) {
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(addData.id);
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "Data undefined");
+                    var deleteRequest = objectstore.delete(addData.id);
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -106,60 +116,9 @@ QUnit.test("Retrieving data - external key", function (assert) {
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - internal key", function (assert) {
+QUnit.test("Deleting data - key range lowerBound exclusieve", function (assert) {
     var done = assert.async();
-    assert.expect(1);
-
-    initionalSituationObjectStoreWithKeyPathAndData(function () {
-        var request = indexedDb.open(dbName);
-        request.onsuccess = function(e){
-            try{
-                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
-                var objectstore = transaction.objectStore(objectStoreName);
-
-                try{
-                    var getRequest = objectstore.get(addData.id);
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "Data undefined");
-                    };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
-                    };
-                }
-                catch (ex){
-                    assert.ok(false, "Get error");
-                }
-
-                transaction.oncomplete = function (e){
-                    e.target.db.close();
-                    done();
-                };
-                transaction.onabort = function (err){
-                    assert.equal(err.error.name, "AbortError", "AbortError");
-                    e.target.result.close();
-                    done();
-                };
-                transaction.onerror = function (){
-                    assert.ok(false, "Transaction error");
-                    e.target.result.close();
-                    done();
-                };
-            }
-            catch (ex) {
-                assert.ok(false, "Transaction error");
-                e.target.result.close();
-                done();
-            }
-        };
-        request.onerror = function(){
-            assert.ok(false, "Database error");
-            done();
-        };
-    }, done, assert);
-});
-QUnit.test("Retrieving data - key range lowerBound exclusieve", function (assert) {
-    var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -169,16 +128,26 @@ QUnit.test("Retrieving data - key range lowerBound exclusieve", function (assert
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(KeyRange.lowerBound(5, true));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData6, "Data");
+                    var deleteRequest = objectstore.delete(KeyRange.lowerBound(5, true));
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
+
+                        var countRequest = objectstore.count(KeyRange.lowerBound(5, true));
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -208,9 +177,9 @@ QUnit.test("Retrieving data - key range lowerBound exclusieve", function (assert
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range lowerBound inclusieve", function (assert) {
+QUnit.test("Deleting data - key range lowerBound inclusieve", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -220,16 +189,26 @@ QUnit.test("Retrieving data - key range lowerBound inclusieve", function (assert
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(KeyRange.lowerBound(5));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData5, "Data");
+                    var deleteRequest = objectstore.delete(KeyRange.lowerBound(5));
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
+
+                        var countRequest = objectstore.count(KeyRange.lowerBound(5));
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -259,9 +238,9 @@ QUnit.test("Retrieving data - key range lowerBound inclusieve", function (assert
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range upperBound", function (assert) {
+QUnit.test("Deleting data - key range upperBound exclusieve", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -271,16 +250,26 @@ QUnit.test("Retrieving data - key range upperBound", function (assert) {
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(KeyRange.upperBound(5));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "No data Data");
+                    var deleteRequest = objectstore.delete(KeyRange.upperBound(5, true));
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
+
+                        var countRequest = objectstore.count(KeyRange.upperBound(5, true));
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -310,9 +299,9 @@ QUnit.test("Retrieving data - key range upperBound", function (assert) {
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range upperBound exclusieve", function (assert) {
+QUnit.test("Deleting data - key range upperBound inclusieve", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -322,16 +311,26 @@ QUnit.test("Retrieving data - key range upperBound exclusieve", function (assert
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(KeyRange.upperBound(1, true));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, undefined, "No data Data");
+                    var deleteRequest = objectstore.delete(KeyRange.upperBound(5, false));
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
+
+                        var countRequest = objectstore.count(KeyRange.upperBound(5, false));
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -361,9 +360,9 @@ QUnit.test("Retrieving data - key range upperBound exclusieve", function (assert
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert) {
+QUnit.test("Deleting data - key range only", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -373,16 +372,26 @@ QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(KeyRange.upperBound(1, false));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "Data");
+                    var deleteRequest = objectstore.delete(KeyRange.only(1));
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
+
+                        var countRequest = objectstore.count(KeyRange.only(1));
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -412,9 +421,9 @@ QUnit.test("Retrieving data - key range upperBound inclusieve", function (assert
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range only", function (assert) {
+QUnit.test("Deleting data - key range between", function (assert) {
     var done = assert.async();
-    assert.expect(1);
+    assert.expect(2);
 
     initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
         var request = indexedDb.open(dbName);
@@ -424,16 +433,26 @@ QUnit.test("Retrieving data - key range only", function (assert) {
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(KeyRange.only(1));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "Data");
+                    var deleteRequest = objectstore.delete(KeyRange.bound(1,5, false, false));
+                    deleteRequest.onsuccess = function (e){
+                        assert.equal(e.target.result, undefined, "Data deleted");
+
+                        var countRequest = objectstore.count(KeyRange.bound(1,5, false, false));
+
+                        countRequest.onsuccess = function (e){
+                            assert.equal(e.target.result, 0, "Data deleted");
+
+                        };
+                        countRequest.onerror = function (e){
+                            assert.ok(false, "Count error");
+                        };
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
-                    assert.ok(false, "Get error");
+                    assert.ok(false, "Delete error");
                 }
 
                 transaction.oncomplete = function (e){
@@ -463,58 +482,7 @@ QUnit.test("Retrieving data - key range only", function (assert) {
         };
     }, done, assert);
 });
-QUnit.test("Retrieving data - key range between", function (assert) {
-    var done = assert.async();
-    assert.expect(1);
-
-    initionalSituationObjectStoreWithKeyPathAndMultipleDataNoAutoIncrement(function () {
-        var request = indexedDb.open(dbName);
-        request.onsuccess = function(e){
-            try{
-                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
-                var objectstore = transaction.objectStore(objectStoreName);
-
-                try{
-                    var getRequest = objectstore.get(KeyRange.bound(1,5, false, false));
-                    getRequest.onsuccess = function (e){
-                        assert.deepEqual(e.target.result, addData, "Data");
-                    };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
-                    };
-                }
-                catch (ex){
-                    assert.ok(false, "Get error");
-                }
-
-                transaction.oncomplete = function (e){
-                    e.target.db.close();
-                    done();
-                };
-                transaction.onabort = function (err){
-                    assert.equal(err.error.name, "AbortError", "AbortError");
-                    e.target.result.close();
-                    done();
-                };
-                transaction.onerror = function (){
-                    assert.ok(false, "Transaction error");
-                    e.target.result.close();
-                    done();
-                };
-            }
-            catch (ex) {
-                assert.ok(false, "Transaction error");
-                e.target.result.close();
-                done();
-            }
-        };
-        request.onerror = function(){
-            assert.ok(false, "Database error");
-            done();
-        };
-    }, done, assert);
-});
-QUnit.test("Retrieving data - key invalid", function (assert) {
+QUnit.test("Deleting data - key invalid", function (assert) {
     var done = assert.async();
     assert.expect(1);
     var key = 1;
@@ -527,12 +495,12 @@ QUnit.test("Retrieving data - key invalid", function (assert) {
                 var objectstore = transaction.objectStore(objectStoreName);
 
                 try{
-                    var getRequest = objectstore.get(function(){});
-                    getRequest.onsuccess = function (e){
-                        assert.ok(false, "Data retrieved");
+                    var deleteRequest = objectstore.delete(function(){});
+                    deleteRequest.onsuccess = function (e){
+                        assert.ok(false, "Data deleted");
                     };
-                    getRequest.onerror = function (e){
-                        assert.ok(false, "Get error");
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
                     };
                 }
                 catch (ex){
@@ -566,3 +534,108 @@ QUnit.test("Retrieving data - key invalid", function (assert) {
         };
     }, done, assert);
 });
+QUnit.test("Deleting data - no key", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+    var key = 1;
+
+    initionalSituationObjectStoreNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readwrite");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var deleteRequest = objectstore.delete();
+                    deleteRequest.onsuccess = function (e){
+                        assert.ok(false, "Data deleted");
+                    };
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "Delete error");
+                    };
+                }
+                catch (ex){
+                    assert.equal(ex.name, "TypeError", ex.name);
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    assert.equal(err.error.name, "AbortError", "AbortError");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction error");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+QUnit.test("Deleting data - ReadOnly transaction", function (assert) {
+    var done = assert.async();
+    assert.expect(1);
+
+    initionalSituationObjectStoreNoAutoIncrement(function () {
+        var request = indexedDb.open(dbName);
+        request.onsuccess = function(e){
+            try{
+                var transaction = e.target.result.transaction([objectStoreName], "readonly");
+                var objectstore = transaction.objectStore(objectStoreName);
+
+                try{
+                    var deleteRequest = objectstore.delete(1);
+                    deleteRequest.onsuccess = function (e){
+                        assert.ok(false, "data deleted");
+                    };
+                    deleteRequest.onerror = function (e){
+                        assert.ok(false, "delete error");
+                    };
+                }
+                catch (ex){
+                    assert.equal(ex.name, "ReadOnlyError", "ReadOnlyError");
+                }
+
+                transaction.oncomplete = function (e){
+                    e.target.db.close();
+                    done();
+                };
+                transaction.onabort = function (err){
+                    assert.ok(false, "Transaction abort");
+                    e.target.result.close();
+                    done();
+                };
+                transaction.onerror = function (){
+                    assert.ok(false, "Transaction error");
+                    e.target.result.close();
+                    done();
+                };
+            }
+            catch (ex) {
+                assert.ok(false, "Transaction exception");
+                e.target.result.close();
+                done();
+            }
+        };
+        request.onerror = function(){
+            assert.ok(false, "Database error");
+            done();
+        };
+    }, done, assert);
+});
+
+// TODO Add test with indexes check if data is present

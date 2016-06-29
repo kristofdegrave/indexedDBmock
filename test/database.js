@@ -202,7 +202,6 @@ QUnit.test("Deleting non existing Database", function (assert) {
         };
     }, done, assert);
 });
-/* TODO add tests for version change event */
 QUnit.test("Opening database with higher version while open database connection exist.", function (assert) {
     var done = assert.async();
     var version = 2;
@@ -275,5 +274,45 @@ QUnit.test("Block opening database with higher version.", function (assert) {
 
     }, done, assert);
 });
+QUnit.test("Block delete database with open connection.", function (assert) {
+    var done = assert.async();
+    var version = 2;
+    assert.expect(5);
 
+    initionalSituation(function(){
+        var request = indexedDb.open(dbName, version);
 
+        request.onsuccess = function(e){
+            e.target.result.onversionchange = function(args){
+                assert.equal("versionchange", args.type, "Versionchange database");
+            };
+            var request2 = indexedDb.deleteDatabase(dbName);
+            request2.onsuccess = function(args){
+                assert.ok(true, "Database deleted");
+                done();
+            };
+            request2.onblocked = function(args){
+                assert.equal("blocked", args.type, "blocked database");
+                assert.equal(args.oldVersion, version, "Old version");
+                assert.equal(args.newVersion, null, "New version");
+                e.target.result.close();
+            };
+            request2.onerror = function(){
+                assert.ok(false, "Creating database failed");
+                done();
+            };
+            request2.onupgradeneeded = function(args){
+                assert.ok(false, "upgradeneeded database");
+            };
+
+        };
+        request.onerror = function(){
+            assert.ok(false, "Creating database failed");
+            done();
+        };
+        request.onblocked = function(e){
+            assert.ok(false, "Blocked database");
+        };
+
+    }, done, assert);
+});

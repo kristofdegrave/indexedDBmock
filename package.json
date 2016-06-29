@@ -36,6 +36,10 @@
     "grunt-contrib-uglify": "^0.7.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-nuget": "^0.1.4",
-    "grunt-release": "^0.11.0"
+    "grunt-release": "^0.11.0",
+    "grunt-webpack": "^1.0.11",
+    "matchdep": "^1.0.0",
+    "webpack": "^1.12.3",
+    "webpack-dev-server": "^1.12.1"
   }
 }

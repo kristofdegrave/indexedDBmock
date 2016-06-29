@@ -8,7 +8,7 @@
         indexeddb = {
             open: function (name, version) {
                 var db,
-                    returnObj = {};
+                    openDBRequest = new Request(null, null);
                 for(var database in dbs)
                 {
                     if(database === name)
@@ -31,15 +31,10 @@
 
                 if(version && connection.version > version){
                     setTimeout(function(){
-                        if(typeof returnObj.onerror === 'function'){
-                            returnObj.target = returnObj;
-                            returnObj.target.errorCode = "VersionError";
-                            returnObj.target.error = {
-                                name: "VersionError"
-                            };
-                            returnObj.target.readyState = "done";
-                            returnObj.onerror(returnObj);
-                        }
+                        openDBRequest.__error({
+                            name: "VersionError",
+                            message: "You are trying to open the database in a lower version (" + version + ") than the current version of the database"
+                        }, "VersionError");
                     }, timeout);
                 }
                 else {
@@ -52,78 +47,46 @@
                                     }
                                 }
                             }
-                            function upgrade(returnObj, connection, db, version) {
+                            function upgrade(request, connection, db, version) {
+                                var currentVersion = connection.version;
                                 if(db.connections.length > 0 && db.connections[0]._connectionId !== connection._connectionId){
-                                    if (typeof returnObj.onblocked === 'function') {
-                                        returnObj.onblocked(new IVersionChangeEvent("blocked", {target: db.connections[i], newVersion: null, oldVersion: connection.version}));
-                                    }
-                                    setTimeout(upgrade, 10, returnObj, connection, db, version);
+                                    openDBRequest.__blocked(null, connection.version);
+                                    setTimeout(upgrade, 10, request, connection, db, version);
                                 }
 
-                                returnObj.target = returnObj;
-                                returnObj.target.readyState = "done";
-                                returnObj.target.type = "upgradeneeded";
-                                returnObj.target.newVersion = version;
-                                returnObj.target.oldVersion = connection.version;
-                                returnObj.target.transaction = new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection));
-
-                                // Upgrade version
-                                returnObj.target.transaction.db.version = version;
                                 connection.version = version;
                                 db.version = version;
 
-                                if (typeof returnObj.onupgradeneeded === 'function') {
-                                    returnObj.onupgradeneeded(returnObj);
-                                    returnObj.target.transaction.__commit();
-                                }
+                                openDBRequest.__upgradeneeded(connection, new Transaction(null, TransactionTypes.VERSIONCHANGE, new Snapshot(db, connection)), version, currentVersion);
                             }
 
-                            upgrade(returnObj, connection, db, version);
+                            upgrade(openDBRequest, connection, db, version);
 
                             setTimeout(function () {
-                                if(returnObj.target.transaction._aborted) {
-                                    if (typeof returnObj.onerror === 'function') {
-                                        returnObj.target = returnObj;
-                                        returnObj.target.errorCode = 8;
-                                        returnObj.target.error = {
-                                            name: "AbortError",
-                                            message: "The transaction was aborted."
-                                        };
-                                        returnObj.target.readyState = "done";
-
-                                        returnObj.onerror(returnObj);
-                                    }
+                                if(openDBRequest.transaction._aborted) {
+                                    openDBRequest.__error({
+                                        name: "AbortError",
+                                        message: "The transaction was aborted."
+                                    }, 8);
                                 }
-                                else if (typeof returnObj.onsuccess === 'function') {
-                                    returnObj.target = returnObj;
-                                    returnObj.target.result = connection;
-                                    returnObj.target.readyState = "done";
-
+                                else {
                                     db.connections.push(connection);
-
-                                    returnObj.onsuccess(returnObj);
+                                    openDBRequest.__success(connection);
                                 }
                             }, timeout);
                         }, timeout);
                     }
                     else {
                         setTimeout(function () {
-                            if (typeof returnObj.onsuccess === 'function') {
-                                returnObj.target = returnObj;
-                                returnObj.target.result = connection;
-                                returnObj.target.readyState = "done";
-
-                                db.connections.push(connection);
-
-                                returnObj.onsuccess(returnObj);
-                            }
+                            db.connections.push(connection);
+                            openDBRequest.__success(connection);
                         }, timeout);
                     }
                 }
-                return returnObj;
+                return openDBRequest;
             },
             deleteDatabase: function(name){
-                var returnObj = {};
+                var openDBRequest = new Request(null, null);
                 for(var database in dbs)
                 {
                     if(database === name)
@@ -134,24 +97,71 @@
                 }
 
                 setTimeout(function(){
-                    if(typeof returnObj.onsuccess === 'function'){
-                        returnObj.target = returnObj;
-                        returnObj.target.readyState = "done";
-
-                        returnObj.onsuccess(returnObj);
-                    }
+                    openDBRequest.__success();
                 }, timeout);
 
-                return returnObj;
+                return openDBRequest;
             },
             cmp: function(first, second) {
-
+                if(typeof first === 'number' && typeof second === 'number' || typeof first === 'string' && typeof second === 'string' || first instanceof Date && second instanceof Date || first instanceof Array && second instanceof Array){
+                    if(first instanceof Array && second instanceof Array){
+                        first = first.sort(indexeddb.cmp);
+                        second = second.sort(indexeddb.cmp);
+                        var length = first.length < second.length ? first.length : second.length;
+                        for (var i = 0; i < length; i++) {
+                            if ( first[i] < second[i] ){
+                                return -1;
+                            }
+                            if ( first[i] > second[i] ){
+                                return 1;
+                            }
+                        }
+                        if (first.length < second.length){
+                            return -1;
+                        }
+                        if (first.length > second.length){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                    else{
+                        if ( first < second ){
+                            return -1;
+                        }
+                        if ( first > second ){
+                            return 1;
+                        }
+                        return 0;
+                    }
+                }
+                else if(first instanceof Array){
+                    return 1;
+                }
+                else if(second instanceof Array){
+                    return -1;
+                }
+                else if(typeof first === 'string'){
+                    return 1;
+                }
+                else if(typeof second === 'string'){
+                    return -1;
+                }
+                else if(first instanceof Date){
+                    return 1;
+                }
+                else{
+                    return -1;
+                }
             }
         },
         TransactionTypes = {
             READONLY: "readonly",
             READWRITE: "readwrite",
             VERSIONCHANGE: "versionchange"
+        },
+        DBRequestReadyState = {
+            "pending": "pending",
+            "done": "done"
         },
         Database = function(name){
             this.name = name;
@@ -221,6 +231,11 @@
                 }
             }
 
+            this.oncomplete = undefined;
+            this.onerror = undefined;
+            this.onabort = undefined;
+
+            this.error = null;
             this.mode = mode;
             this.objectStoreNames = objectStoreNames;
             this.db.transaction = this;
@@ -269,17 +284,38 @@
             this.detail = undefined;
             this.eventPhase = this.AT_TARGET;
             this.path = undefined;
-            this.returnValue = undefined;
+            this.returnValue = config.returnValue;
             this.srcElement = config.target;
             this.target = config.target;
             this.timestamp = global.Date.now();
             this.type = type;
         },
         IVersionChangeEvent = function(type, versionChangeInit){
-            IEvent.call(this, type, {target: versionChangeInit.target});
+            IEvent.call(this, type, versionChangeInit);
 
             this.newVersion = versionChangeInit.newVersion;
             this.oldVersion = versionChangeInit.oldVersion;
+        },
+        ISuccessEvent = function(request){
+            IEvent.call(this, "success", {target: request, returnValue: true});
+        },
+        ICompleteEvent = function(transaction){
+            IEvent.call(this, "complete", {target: transaction, returnValue: true});
+        },
+        IAbortEvent = function(transaction){
+            IEvent.call(this, "abort", {target: transaction, returnValue: true});
+        },
+        IErrorEvent = function(request){
+                IEvent.call(this, "error", {target: request, returnValue: true});
+            },
+        Request = function(source, transaction){
+            this.error = undefined;
+            this.result = undefined;
+            this.source = source;
+            this.transaction = transaction;
+            this.readyState = DBRequestReadyState.pending;
+            this.onsuccess = null;
+            this.onerror = null;
         };
 
     IEvent.prototype = (function(){
@@ -297,7 +333,10 @@
     })();
 
     IVersionChangeEvent.prototype = IEvent.prototype;
-
+    ISuccessEvent.prototype = IEvent.prototype;
+    ICompleteEvent.prototype = IEvent.prototype;
+    IAbortEvent.prototype = IEvent.prototype;
+    IErrorEvent.prototype = IEvent.prototype;
 
     Connection.prototype = function () {
         function close() {
@@ -335,7 +374,6 @@
                     name: "InvalidStateError"
                 };
             }
-
 
             // TODO: Check valid key path?
             
@@ -417,37 +455,19 @@
                 }
                 context.__active = false;
 
-                if (typeof context.oncomplete === 'function') {
-                    context.target = context;
-                    context.target.result = context;
-                    context.target.readyState = "done";
-
-                    context.oncomplete(context);
-                }
+                context.__complete();
             }
         }
 
-        function abort(err) {
+        function abort(error) {
             this._aborted = true;
 
-            if(!err){
-                err = {
-                    name: "AbortError",
-                    message: "The transaction was aborted."
-                };
-            }
-
-            var trans = this;
-
-            setTimeout(function() {
-                if (typeof trans.onabort === 'function') {
-                    trans.target = trans;
-                    trans.target.errorCode = 8;
-                    trans.target.error = err;
-                    trans.target.readyState = "done";
-                    trans.onabort(trans);
+            setTimeout(function(tx) {
+                tx.error = error;
+                if (typeof tx.onabort === 'function') {
+                    tx.onabort(new IAbortEvent(tx));
                 }
-            }, timeout);
+            }, timeout, this);
         }
 
         function objectStore(name) {
@@ -508,11 +528,28 @@
             }, timeout);
         }
 
+         function error(err, code){
+            this.error = err;
+            this.errorCode = code;
+
+            if (typeof this.onerror === 'function') {
+                this.onerror(new IErrorEvent(this));
+            }
+        }
+
+        function complete(){
+            if (typeof this.oncomplete === 'function') {
+                this.oncomplete(new ICompleteEvent(this));
+            }
+        }
+
         return {
             abort: abort,
             objectStore: objectStore,
             __commit: commit,
-            __checkFinished: checkFinished
+            __checkFinished: checkFinished,
+            __complete: complete,
+            __error: error
         };
     }();
 
@@ -570,7 +607,7 @@
             var timestamp = (new Date()).getTime();
             var context = this;
             context.__actions.push(timestamp);
-            var returnObj = {};
+            var request = new Request(this, this.transaction);
             var data;
 
             if(!(key instanceof KeyRange)){
@@ -578,14 +615,17 @@
             }
 
             if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
-                error(context, returnObj, { name: "InvalidStateError" });
+                error(context, request, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
             }
 
             if(key.upper === key.lower){
                 data = context.__data[key.lower]; 
             }
             else{
-                var keysSorted = this.__keys.sort(sortKey); // todo extend with all types of keys
+                var keysSorted = this.__keys.sort(indexeddb.cmp); // todo extend with all types of keys
                 for (var i = 0; i < keysSorted.length; i++) {
                     if(key.inRange(keysSorted[i])){
                         data = context.__data[keysSorted[i]];
@@ -595,17 +635,11 @@
             }
 
             setTimeout(function () {
-                if (typeof returnObj.onsuccess === 'function') {
-                    returnObj.target = returnObj;
-                    returnObj.target.result = data;
-                    returnObj.target.readyState = "done";
-
-                    returnObj.onsuccess(returnObj);
-                }
+                request.__success(data);
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
             }, timeout);
 
-            return returnObj;
+            return request;
         }
         function put(data, key){
             return persist(this, data, key, false);
@@ -615,25 +649,9 @@
         } 
 
         function error(context, request, err){
-
             setTimeout(function () {
-                if (typeof request.onerror === 'function') {
-                    request.target = request;
-                    request.target.readyState = "done";
-                    request.target.error = err;
-
-                    request.onerror(request);
-                }
-
-                if (typeof context.transaction.onerror === 'function') {
-                    context.transaction.target = context.transaction;
-                    context.transaction.target.readyState = "done";
-                    context.transaction.target.error = err;
-
-                    context.transaction.onerror(context.transaction);
-                }
-
-
+                request.__error(err);
+                context.transaction.__error(err);
                 context.transaction.abort(err);
             }, timeout);
 
@@ -650,19 +668,28 @@
         function persist(context, data, key, noOverWrite){
             var timestamp = (new Date()).getTime();
             context.__actions.push(timestamp);
-            var returnObj = {};
+            var request = new Request(this, this.transaction);
             var internalKey = key;
 
             if(context.transaction.db.objectStoreNames.indexOf(context.name) == -1){
-                exception(context, { name: "InvalidStateError" }, timestamp);
+                exception(context, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             if(context.transaction.mode == TransactionTypes.READONLY){
-                exception(context, { name: "ReadOnlyError" }, timestamp);
+                exception(context, {
+                    name: "ReadOnlyError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             if(!context.keyPath && !key && !context.autoIncrement || context.keyPath && (key || !data[context.keyPath] && !context.autoIncrement || !isObject(data))) {
-                exception(context, { name: "DataError" }, timestamp);
+                exception(context, {
+                    name: "DataError"
+                    // TODO Add message
+                }, timestamp);
             }
 
 			if(context.autoIncrement){
@@ -676,7 +703,10 @@
 				
 				if(internalKey > 9007199254740992)
 				{
-                    return error(context, returnObj, { name: "ConstraintError" });
+                    return error(context, request, {
+                        name: "ConstraintError"
+                        // TODO Add message
+                    });
 				}
 				
 				context.__latestKey = internalKey;
@@ -686,16 +716,25 @@
             }
 
             if(!isValidKey(internalKey)) {
-                exception(context, { name: "DataError" }, timestamp);
+                exception(context, {
+                    name: "DataError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             if(noOverWrite && context.__data[internalKey])
             {
-                return error(context, returnObj, { name: "ConstraintError" });
+                return error(context, request, {
+                    name: "ConstraintError"
+                    // TODO Add message
+                });
             }
 
             if(containsFunction(data)){
-                exception(context, { name: "DataCloneError" }, timestamp);
+                exception(context, {
+                    name: "DataCloneError"
+                    // TODO Add message
+                }, timestamp);
             }
 
             // Check index constraints
@@ -714,7 +753,10 @@
                         if(isValidKey(indexKey[l]) && !keys[indexKey[l]]){
                             keys[indexKey[l]] = indexKey[l];
                             if(index.unique && index.__data[indexKey[l]]){
-                                return error(context, returnObj, { name: "ConstraintError" });
+                                return error(context, request, {
+                                    name: "ConstraintError"
+                                    // TODO Add message
+                                });
                             }
                         }
                     }
@@ -725,7 +767,10 @@
                         continue;
                     }
                     if(index.unique && index.__data[indexKey]){
-                        return error(context, returnObj, { name: "ConstraintError" });
+                        return error(context, request, {
+                            name: "ConstraintError"
+                            // TODO Add message
+                        });
                     }
                 }
             }
@@ -784,29 +829,29 @@
             context.__data[internalKey] = data;
 
             setTimeout(function () {
-                if (typeof returnObj.onsuccess === 'function') {
-                    returnObj.target = returnObj;
-                    returnObj.target.result = internalKey;
-                    returnObj.target.readyState = "done";
-
-                    returnObj.onsuccess(returnObj);
-                }
+                request.__success(internalKey);
                 context.__actions.splice(context.__actions.indexOf(timestamp),1);
             }, timeout);
 
-            return returnObj;
+            return request;
         }
 
         function createIndex(name, keyPath, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                exception(this, { name: "InvalidStateError" });
+                exception(this, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
             }
 
             if(keyPath && keyPath instanceof Array)
             {
                 for (var i = 0; i < keyPath.length; i++){
                     if(keyPath[i] === ""){
-                        exception(this, { name: "InvalidStateError" });
+                        exception(this, {
+                            name: "InvalidStateError"
+                            // TODO Add message
+                        });
                     }
                 }
             }
@@ -823,7 +868,10 @@
         }
         function deleteIndex(name, parameters){
             if(this.transaction.mode !== TransactionTypes.VERSIONCHANGE){
-                exception(this, { name: "InvalidStateError" });
+                exception(this, {
+                    name: "InvalidStateError"
+                    // TODO Add message
+                });
             }
 
             var indexFound = false;
@@ -838,7 +886,10 @@
 
             if(!indexFound)
             {
-                exception(this, { name: "NotFoundError" });
+                exception(this, {
+                    name: "NotFoundError"
+                    // TODO Add message
+                });
             }
 
             for(var j = 0; j < this._indexes.length; j++)
@@ -859,7 +910,10 @@
                 }
 
                 if (!indexFound) {
-                    exception(this, { name: "NotFoundError" });
+                    exception(this, {
+                        name: "NotFoundError"
+                        // TODO Add message
+                    });
                 }
             }
 
@@ -871,7 +925,10 @@
                 }
             }
 
-            exception(this, { name: "NotFoundError" });
+            exception(this, {
+                name: "NotFoundError"
+                // TODO Add message
+            });
         }
 
         function finished (){
@@ -903,6 +960,7 @@
         if(!isValidKey(value)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
         return new KeyRange(value, value, false, false);
@@ -912,6 +970,7 @@
         if(!isValidKey(lower)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
         return new KeyRange(lower, undefined, open ? open : false, true);
@@ -921,6 +980,7 @@
         if(!isValidKey(upper)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
         return new KeyRange(undefined, upper, true, open ? open : false);
@@ -930,6 +990,7 @@
         if(!isValidKey(lower) || !isValidKey(upper) || upper < lower || (upper === lower && !!upperOpen && !!lowerOpen)){
             throw {
                 name: "DataError"
+                // TODO Add message
             };
         }
 
@@ -948,6 +1009,52 @@
         };
     }();
 
+    Request.prototype = function () {
+        function error(err, code){
+            this.error = err;
+            this.errorCode = code;
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onerror === 'function') {
+                this.onerror(new IErrorEvent(this));
+            }
+        }
+
+        function success(result){
+            this.result = result;
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onsuccess === 'function') {
+                this.onsuccess(new ISuccessEvent(this));
+            }
+        }
+
+        function blocked(newVersion, oldVersion){
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onblocked === 'function') {
+                this.onblocked(new IVersionChangeEvent("blocked", {target: this, newVersion: null, oldVersion: oldVersion}));
+            }
+        }
+
+        function upgradeneeded(result, transaction, newVersion, oldVersion){
+            this.result = result;
+            this.transaction = transaction;
+            this.readyState = DBRequestReadyState.done;
+
+            if (typeof this.onupgradeneeded === 'function') {
+                this.onupgradeneeded(new IVersionChangeEvent("upgradeneeded", {target: this, newVersion: newVersion, oldVersion: oldVersion, returnValue: true}));
+                transaction.__commit();
+            }
+        }
+        return {
+            __error: error,
+            __success: success,
+            // TODO Refactor in seperate object
+            __blocked: blocked,
+            __upgradeneeded: upgradeneeded
+        };
+    }();
 
     function isValidKey(key){
         if(typeof key === 'number' && !isNaN(key) || typeof key === 'string' || key instanceof Date && !isNaN(key)){
@@ -965,58 +1072,6 @@
         return false;
     }
 
-    function sortKey(item1,item2){
-        if(typeof item1 === 'number' && typeof item2 === 'number' || typeof item1 === 'string' && typeof item2 === 'string' || item1 instanceof Date && item2 instanceof Date || item1 instanceof Array && item2 instanceof Array){
-            if(item1 instanceof Array && item2 instanceof Array){
-                item1 = item1.sort(sortKey);
-                item2 = item2.sort(sortKey);
-                var length = item1.length < item2.length ? item1.length : item2.length;
-                for (var i = 0; i < length; i++) {
-                    if ( item1[i] < item2[i] ){
-                      return -1;
-                    } 
-                    if ( item1[i] > item2[i] ){
-                      return 1;
-                    }
-                }
-                if (item1.length < item2.length){
-                    return -1;
-                }
-                if (item1.length > item2.length){
-                    return 1;
-                }
-                return 0;
-            }
-            else{
-                if ( item1 < item2 ){
-                  return -1;
-                } 
-                if ( item1 > item2 ){
-                  return 1;
-                }
-                return 0; 
-            }       
-        }
-        else if(item1 instanceof Array){
-            return 1;
-        }
-        else if(item2 instanceof Array){
-            return -1;
-        }
-        else if(typeof item1 === 'string'){
-            return 1;
-        }
-        else if(typeof item2 === 'string'){
-            return -1;
-        }
-        else if(item1 instanceof Date){
-            return 1;
-        }
-        else{
-            return -1;
-        }
-    }
-
     global.indexedDBmock = indexeddb;
     global.IDBCursormock = Cursor;
     global.IDBDatabasemock = Snapshot;
@@ -1027,5 +1082,3 @@
     global.IDBKeyRangemock = KeyRange;
     global.indexedDBmockDbs = dbs;
 })(window || self);
-
-// TODO: determine when exception is thrown.
