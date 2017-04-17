@@ -255,7 +255,7 @@ QUnit.test("Block opening database with higher version.", function (assert) {
             request2.onblocked = function(args){
                 assert.equal("blocked", args.type, "blocked database");
                 assert.equal(args.oldVersion, version, "Old version");
-                assert.equal(args.newVersion, null, "New version");
+                assert.equal(args.newVersion, version+1, "New version");
                 e.target.result.close();
             };
             request2.onerror = function(){
