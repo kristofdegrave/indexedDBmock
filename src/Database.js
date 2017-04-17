@@ -74,7 +74,7 @@ define('Database', [
 
         function upgradeInternal(db, openDBRequest, currentVersion, version, connection, successCallback, failCallback) {
             if(db.connections.length > 0 && db.connections[0].__connectionId !== connection.__connectionId){
-                openDBRequest.__blocked(currentVersion, connection.version);
+                openDBRequest.__blocked(connection.version, currentVersion);
                 setTimeout(upgradeInternal, 10, db, openDBRequest, currentVersion, version, connection, successCallback, failCallback);
                 return;
             }
