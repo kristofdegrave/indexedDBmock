@@ -23,7 +23,7 @@ define('IDBOpenDBRequest', [
         this.readyState = IDBRequestReadyState.done;
 
         if (util.isFunction(this.onblocked)) {
-            this.onblocked(new IVersionChangeEvent("blocked", {target: this, newVersion: null, oldVersion: oldVersion}));
+            this.onblocked(new IVersionChangeEvent("blocked", {target: this, newVersion: newVersion, oldVersion: oldVersion}));
         }
     };
     IDBOpenDBRequest.prototype.__upgradeneeded = function (result, transaction, newVersion, oldVersion){
