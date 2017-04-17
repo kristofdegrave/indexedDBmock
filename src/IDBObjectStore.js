@@ -104,7 +104,7 @@ define('IDBObjectStore', [
 
             if(!internalKey){
                 exception(this, {
-                    name: "TypeError"
+                    name: "DataError"
                     // TODO Add message
                 }, timestamp);
             }
